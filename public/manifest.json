@@ -1,0 +1,19 @@
+{
+  "name": "ViniQode",
+  "short_name": "ViniQode",
+  "description": "E-label QR code conforme (UE) 2021/2117 pour vignerons",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#16A34A",
+  "orientation": "portrait",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

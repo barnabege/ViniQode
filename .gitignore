@@ -1,3 +1,15 @@
+# Dependencies
+node_modules
+
+# Next.js
+.next
+out
+build
+dist
+
+# Production
+.vercel
+
 # Logs
 logs
 *.log
@@ -7,18 +19,31 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# Env
+.env
+.env.local
+.env.production
+.env*.local
 
-# Editor directories and files
+# OS / Editor
+.DS_Store
+.idea
 .vscode/*
 !.vscode/extensions.json
-.idea
-.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# Next-PWA generated
+public/sw.js
+public/workbox-*.js
+public/worker-*.js
+public/sw.js.map
+public/workbox-*.js.map
+public/worker-*.js.map
+
+# TypeScript
+next-env.d.ts
+*.tsbuildinfo

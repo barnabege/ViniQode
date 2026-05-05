@@ -1,0 +1,39 @@
+// app/dashboard/cuvees/new/page.tsx
+import { redirect } from "next/navigation";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { CuveeWizard } from "./CuveeWizard";
+
+export const metadata = { title: "Nouvelle cuvée" };
+
+export default async function NewCuveePage() {
+  const supabase = createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("nom_domaine")
+    .eq("id", user.id)
+    .single<{ nom_domaine: string | null }>();
+
+  return (
+    <main className="flex-1 px-6 py-8 sm:px-8 sm:py-10">
+      <div className="mx-auto max-w-4xl">
+        <header className="mb-8">
+          <h1 className="font-serif text-2xl text-foreground sm:text-3xl">
+            Nouvelle cuvée
+          </h1>
+          <p className="mt-1 text-sm text-muted">
+            Renseignez votre cuvée en 4 étapes pour générer son e-label conforme.
+          </p>
+        </header>
+        <CuveeWizard
+          userId={user.id}
+          domaine={profile?.nom_domaine ?? "Votre domaine"}
+        />
+      </div>
+    </main>
+  );
+}
