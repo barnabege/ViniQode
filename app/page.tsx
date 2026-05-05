@@ -1,6 +1,19 @@
 // app/page.tsx
 import Link from "next/link";
-import { ArrowRight, Check } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowRight,
+  Check,
+  CheckCircle2,
+  Globe,
+  type LucideIcon,
+  MapPin,
+  Package,
+  RefreshCw,
+  Scale,
+  Timer,
+  Zap,
+} from "lucide-react";
 import { Navigation } from "@/components/landing/Navigation";
 import { Footer } from "@/components/landing/Footer";
 import { Button } from "@/components/ui/Button";
@@ -39,7 +52,8 @@ function Hero() {
       <div className="container-page grid min-h-[90vh] items-center gap-12 py-16 lg:grid-cols-2 lg:py-24">
         <div className="animate-slide-up">
           <Badge variant="success" size="md">
-            ✓ Conforme au règlement (UE) 2021/2117
+            <Check className="h-3.5 w-3.5" />
+            Conforme au règlement (UE) 2021/2117
           </Badge>
 
           <h1 className="mt-6 font-serif text-4xl leading-[1.05] text-foreground sm:text-5xl lg:text-[56px]">
@@ -112,21 +126,21 @@ function TrustBar() {
 
 // ─── Problème ────────────────────────────────────────────────────────────
 function Problem() {
-  const cards = [
+  const cards: { icon: LucideIcon; title: string; body: string }[] = [
     {
-      icon: "⚠️",
+      icon: AlertTriangle,
       title: "Aucune solution simple",
       body:
         "Les outils existants sont trop complexes, trop régionaux ou réservés aux grandes structures.",
     },
     {
-      icon: "⚖️",
+      icon: Scale,
       title: "Un risque juridique réel",
       body:
         "La DGCCRF a commencé ses contrôles. Sans conformité, c'est un retrait de produits possible.",
     },
     {
-      icon: "⏱️",
+      icon: Timer,
       title: "Un manque de temps",
       body:
         "Un vigneron de 8 hectares n'a pas de service informatique dédié.",
@@ -150,20 +164,21 @@ function Problem() {
       </div>
 
       <div className="mt-12 grid gap-5 md:grid-cols-3">
-        {cards.map((c) => (
-          <article
-            key={c.title}
-            className="rounded-md border border-border bg-background p-6"
-          >
-            <div className="text-2xl" aria-hidden="true">
-              {c.icon}
-            </div>
-            <h3 className="mt-4 font-serif text-lg text-foreground">
-              {c.title}
-            </h3>
-            <p className="mt-2 text-sm leading-relaxed text-muted">{c.body}</p>
-          </article>
-        ))}
+        {cards.map((c) => {
+          const Icon = c.icon;
+          return (
+            <article
+              key={c.title}
+              className="rounded-md border border-border bg-background p-6"
+            >
+              <Icon className="h-6 w-6 text-accent" aria-hidden="true" />
+              <h3 className="mt-4 font-serif text-lg text-foreground">
+                {c.title}
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted">{c.body}</p>
+            </article>
+          );
+        })}
       </div>
     </section>
   );
@@ -232,34 +247,34 @@ function Solution() {
 
 // ─── Avantages ───────────────────────────────────────────────────────────
 function Avantages() {
-  const items = [
+  const items: { icon: LucideIcon; title: string; body: string }[] = [
     {
-      icon: "🇫🇷",
+      icon: MapPin,
       title: "Nationale & ouverte",
       body: "Disponible partout en France, pour toutes les appellations.",
     },
     {
-      icon: "⚡",
+      icon: Zap,
       title: "Simple avant tout",
       body: "10 minutes, première utilisation. Aucune formation nécessaire.",
     },
     {
-      icon: "✅",
+      icon: CheckCircle2,
       title: "100 % conforme",
       body: "Sans publicité, sans cookies, sans tracking.",
     },
     {
-      icon: "🔄",
+      icon: RefreshCw,
       title: "Sans réimpression",
       body: "Mise à jour de vos données en temps réel sur la page e-label.",
     },
     {
-      icon: "🌍",
+      icon: Globe,
       title: "Multilingue",
       body: "24 langues de l'UE proposées automatiquement au consommateur.",
     },
     {
-      icon: "📦",
+      icon: Package,
       title: "Étiquettes physiques",
       body:
         "Commandez vos stickers QR code et contre-étiquettes directement.",
@@ -275,20 +290,21 @@ function Avantages() {
       </div>
 
       <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {items.map((it) => (
-          <article
-            key={it.title}
-            className="rounded-md border border-border bg-background p-6"
-          >
-            <div className="text-2xl" aria-hidden="true">
-              {it.icon}
-            </div>
-            <h3 className="mt-4 font-serif text-lg text-foreground">
-              {it.title}
-            </h3>
-            <p className="mt-2 text-sm leading-relaxed text-muted">{it.body}</p>
-          </article>
-        ))}
+        {items.map((it) => {
+          const Icon = it.icon;
+          return (
+            <article
+              key={it.title}
+              className="rounded-md border border-border bg-background p-6"
+            >
+              <Icon className="h-6 w-6 text-accent" aria-hidden="true" />
+              <h3 className="mt-4 font-serif text-lg text-foreground">
+                {it.title}
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted">{it.body}</p>
+            </article>
+          );
+        })}
       </div>
     </section>
   );

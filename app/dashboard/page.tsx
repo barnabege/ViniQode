@@ -46,7 +46,7 @@ export default async function DashboardPage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="font-serif text-2xl text-foreground sm:text-3xl">
-              Bonjour, {profile?.prenom ?? ""} 👋
+              Bonjour, {profile?.prenom ?? ""}
             </h1>
             <p className="mt-1 text-sm text-muted">{today}</p>
           </div>
