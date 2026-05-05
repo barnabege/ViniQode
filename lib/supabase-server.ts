@@ -1,9 +1,11 @@
 // lib/supabase-server.ts
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import type { Database } from "./database.types";
 
-export function createSupabaseServerClient() {
+// Voir lib/supabase.ts pour la raison du cast.
+export function createSupabaseServerClient(): SupabaseClient<Database, "public"> {
   const cookieStore = cookies();
   return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -29,5 +31,5 @@ export function createSupabaseServerClient() {
         },
       },
     },
-  );
+  ) as unknown as SupabaseClient<Database, "public">;
 }

@@ -41,8 +41,11 @@ export function Sidebar({ plan }: SidebarProps) {
 
   return (
     <aside className="hidden w-64 flex-col border-r border-border bg-background lg:flex">
-      <div className="px-6 py-5">
-        <Link href="/" className="font-serif text-xl font-bold text-foreground">
+      <div className="px-6 py-6">
+        <Link
+          href="/"
+          className="font-serif text-2xl font-bold tracking-tight text-foreground"
+        >
           ViniQode
         </Link>
       </div>

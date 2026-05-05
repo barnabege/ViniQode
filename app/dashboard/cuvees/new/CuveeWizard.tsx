@@ -24,6 +24,7 @@ import { calculerNutrition, type NutritionValues } from "@/lib/nutrition";
 import { createSupabaseBrowserClient } from "@/lib/supabase";
 import { generateQrCode, type QrCodeAssets } from "@/lib/qrcode";
 import { slugify } from "@/lib/utils";
+import type { TypeVin } from "@/lib/database.types";
 
 const STEPS = [
   { label: "Informations", description: "Identité de la cuvée" },
@@ -140,7 +141,7 @@ export function CuveeWizard({ userId, domaine }: CuveeWizardProps) {
           nom: form.nom,
           appellation: form.appellation,
           millesime: parseInt(form.millesime, 10),
-          type_vin: form.type_vin as FormState["type_vin"] as never,
+          type_vin: form.type_vin as TypeVin,
           degre_alcool: parseFloat(form.degre_alcool),
           volume_cl: parseInt(form.volume_cl, 10),
           sucres_residuels: parseFloat(form.sucres_residuels),

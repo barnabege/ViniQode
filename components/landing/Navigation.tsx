@@ -33,10 +33,10 @@ export function Navigation() {
           : "border-b border-transparent bg-transparent",
       )}
     >
-      <div className="container-page flex h-16 items-center justify-between">
+      <div className="container-page flex h-16 items-center justify-between lg:h-20">
         <Link
           href="/"
-          className="font-serif text-xl font-bold text-foreground"
+          className="font-serif text-2xl font-bold tracking-tight text-foreground lg:text-3xl"
         >
           ViniQode
         </Link>
@@ -61,7 +61,7 @@ export function Navigation() {
             Se connecter
           </Link>
           <Button asChild size="sm">
-            <Link href="/register">Commencer gratuitement</Link>
+            <Link href="/signup">Commencer gratuitement</Link>
           </Button>
         </div>
 
@@ -93,7 +93,7 @@ export function Navigation() {
                 <Link href="/login">Se connecter</Link>
               </Button>
               <Button asChild size="md" block>
-                <Link href="/register">Commencer gratuitement</Link>
+                <Link href="/signup">Commencer gratuitement</Link>
               </Button>
             </div>
           </nav>

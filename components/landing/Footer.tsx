@@ -7,8 +7,8 @@ export function Footer() {
       <div className="container-page py-16">
         <div className="grid gap-12 md:grid-cols-4">
           <div className="md:col-span-1">
-            <p className="font-serif text-2xl font-bold">ViniQode</p>
-            <p className="mt-3 max-w-xs text-sm text-white/70">
+            <p className="font-serif text-3xl font-bold tracking-tight">ViniQode</p>
+            <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/70">
               La conformité e-label simplifiée pour les vignerons artisanaux.
             </p>
           </div>

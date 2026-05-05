@@ -19,7 +19,7 @@ export type StatutCommande =
   | "expediee"
   | "livree";
 
-export interface Profile {
+export type Profile = {
   id: string;
   email: string;
   prenom: string | null;
@@ -29,9 +29,9 @@ export interface Profile {
   plan: Plan;
   stripe_customer_id: string | null;
   created_at: string;
-}
+};
 
-export interface Cuvee {
+export type Cuvee = {
   id: string;
   user_id: string;
   nom: string;
@@ -52,9 +52,9 @@ export interface Cuvee {
   elabel_url: string | null;
   created_at: string;
   updated_at: string;
-}
+};
 
-export interface Commande {
+export type Commande = {
   id: string;
   user_id: string;
   cuvee_id: string;
@@ -64,26 +64,33 @@ export interface Commande {
   statut: StatutCommande;
   stripe_payment_intent_id: string | null;
   created_at: string;
-}
+};
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
       profiles: {
         Row: Profile;
         Insert: Omit<Profile, "created_at">;
         Update: Partial<Profile>;
+        Relationships: [];
       };
       cuvees: {
         Row: Cuvee;
         Insert: Omit<Cuvee, "id" | "created_at" | "updated_at">;
         Update: Partial<Cuvee>;
+        Relationships: [];
       };
       commandes: {
         Row: Commande;
         Insert: Omit<Commande, "id" | "created_at">;
         Update: Partial<Commande>;
+        Relationships: [];
       };
     };
+    Views: { [_ in never]: never };
+    Functions: { [_ in never]: never };
+    Enums: { [_ in never]: never };
+    CompositeTypes: { [_ in never]: never };
   };
 }

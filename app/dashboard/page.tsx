@@ -42,13 +42,13 @@ export default async function DashboardPage() {
 
   return (
     <main className="flex-1">
-      <header className="border-b border-border bg-background px-6 py-6 sm:px-8">
+      <header className="border-b border-border bg-background px-6 py-7 sm:px-10 sm:py-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="font-serif text-2xl text-foreground sm:text-3xl">
+            <h1 className="font-serif text-3xl leading-tight text-foreground sm:text-4xl">
               Bonjour, {profile?.prenom ?? ""}
             </h1>
-            <p className="mt-1 text-sm text-muted">{today}</p>
+            <p className="mt-2 text-sm text-muted">{today}</p>
           </div>
           <Button asChild>
             <Link href="/dashboard/cuvees/new">
@@ -59,7 +59,7 @@ export default async function DashboardPage() {
         </div>
       </header>
 
-      <div className="px-6 py-8 sm:px-8 sm:py-10">
+      <div className="px-6 py-8 sm:px-10 sm:py-12">
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Kpi label="Cuvées actives" value={String(cuveesActives.length)} />
           <Kpi label="QR codes générés" value={String(qrGeneres)} />

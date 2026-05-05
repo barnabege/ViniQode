@@ -16,10 +16,11 @@ import {
 } from "lucide-react";
 import { Navigation } from "@/components/landing/Navigation";
 import { Footer } from "@/components/landing/Footer";
+import { SolutionSection } from "@/components/landing/SolutionSection";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { PhonePreview } from "@/components/ui/PhonePreview";
 import { ELabelMockup } from "@/components/landing/ELabelMockup";
+import { PhoneMockup } from "@/components/landing/PhoneMockup";
 import {
   Accordion,
   AccordionContent,
@@ -35,7 +36,7 @@ export default function HomePage() {
         <Hero />
         <TrustBar />
         <Problem />
-        <Solution />
+        <SolutionSection />
         <Avantages />
         <Tarifs />
         <Faq />
@@ -56,13 +57,13 @@ function Hero() {
             Conforme au règlement (UE) 2021/2117
           </Badge>
 
-          <h1 className="mt-6 font-serif text-4xl leading-[1.05] text-foreground sm:text-5xl lg:text-[56px]">
+          <h1 className="mt-7 font-serif text-5xl leading-[1.05] text-foreground sm:text-6xl lg:text-[64px]">
             Votre e-label QR code
             <br />
             conforme en 10 minutes.
           </h1>
 
-          <p className="mt-6 max-w-xl text-lg text-muted sm:text-xl">
+          <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted sm:text-xl">
             47 000 vignerons ont l'obligation d'afficher un QR code sur
             leurs bouteilles depuis décembre 2023. ViniQode est la solution
             la plus simple du marché.
@@ -70,7 +71,7 @@ function Hero() {
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button asChild size="lg">
-              <Link href="/register">
+              <Link href="/signup">
                 Créer mon e-label gratuitement
                 <ArrowRight className="h-4 w-4" />
               </Link>
@@ -85,10 +86,10 @@ function Hero() {
           </p>
         </div>
 
-        <div className="flex justify-center lg:justify-end">
-          <PhonePreview>
+        <div className="hidden md:flex md:justify-center lg:justify-end">
+          <PhoneMockup>
             <ELabelMockup />
-          </PhonePreview>
+          </PhoneMockup>
         </div>
       </div>
     </section>
@@ -104,18 +105,18 @@ function TrustBar() {
   ];
 
   return (
-    <section className="bg-surface">
-      <div className="container-page py-10">
-        <p className="text-center text-sm text-muted">
+    <section className="border-y border-border bg-surface">
+      <div className="container-page py-14 sm:py-16">
+        <p className="label-eyebrow text-center">
           Rejoignez les vignerons qui font confiance à ViniQode
         </p>
-        <div className="mt-8 grid gap-8 sm:grid-cols-3">
+        <div className="mt-10 grid gap-10 sm:grid-cols-3 sm:gap-8">
           {stats.map((s) => (
             <div key={s.label} className="text-center">
-              <p className="font-serif text-3xl text-foreground sm:text-4xl">
+              <p className="font-serif text-4xl leading-none text-foreground sm:text-5xl">
                 {s.value}
               </p>
-              <p className="mt-1 text-sm text-muted">{s.label}</p>
+              <p className="mt-3 text-sm text-muted">{s.label}</p>
             </div>
           ))}
         </div>
@@ -150,12 +151,12 @@ function Problem() {
   return (
     <section className="container-page py-20 sm:py-24" id="probleme">
       <div className="mx-auto max-w-2xl text-center">
-        <h2 className="font-serif text-3xl text-foreground sm:text-4xl">
+        <h2 className="font-serif text-3xl leading-[1.1] text-foreground sm:text-4xl lg:text-5xl">
           Une obligation légale.
           <br />
           Encore trop peu de solutions simples.
         </h2>
-        <p className="mt-5 text-base text-muted">
+        <p className="mt-6 text-base leading-relaxed text-muted">
           Depuis décembre 2023, le règlement (UE) 2021/2117 impose à tous
           les vins commercialisés en Europe d'afficher leurs ingrédients,
           allergènes et déclaration nutritionnelle — soit sur l'étiquette,
@@ -179,67 +180,6 @@ function Problem() {
             </article>
           );
         })}
-      </div>
-    </section>
-  );
-}
-
-// ─── Solution / Comment ça marche ────────────────────────────────────────
-function Solution() {
-  const steps = [
-    {
-      n: 1,
-      title: "Créez votre compte",
-      body: "Inscription en 2 minutes, sans carte bancaire.",
-    },
-    {
-      n: 2,
-      title: "Saisissez vos cuvées",
-      body:
-        "Formulaire guidé, calcul automatique des valeurs nutritionnelles.",
-    },
-    {
-      n: 3,
-      title: "Générez le QR code",
-      body: "Conforme GS1, haute résolution, prêt pour l'imprimeur.",
-    },
-    {
-      n: 4,
-      title: "Mettez à jour sans réimprimer",
-      body:
-        "Vos données changent, votre page e-label se met à jour instantanément.",
-    },
-  ];
-
-  return (
-    <section
-      id="fonctionnalites"
-      className="bg-surface py-20 sm:py-24"
-    >
-      <div className="container-page">
-        <div className="mx-auto max-w-2xl text-center">
-          <p className="label-eyebrow">La solution</p>
-          <h2 className="mt-3 font-serif text-3xl text-foreground sm:text-4xl">
-            Créez votre e-label en 4 étapes.
-          </h2>
-        </div>
-
-        <ol className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {steps.map((s) => (
-            <li
-              key={s.n}
-              className="rounded-md border border-border bg-background p-6"
-            >
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-accent text-sm font-semibold text-accent">
-                {s.n}
-              </span>
-              <h3 className="mt-4 font-serif text-lg text-foreground">
-                {s.title}
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted">{s.body}</p>
-            </li>
-          ))}
-        </ol>
       </div>
     </section>
   );
@@ -284,7 +224,8 @@ function Avantages() {
   return (
     <section className="container-page py-20 sm:py-24">
       <div className="mx-auto max-w-2xl text-center">
-        <h2 className="font-serif text-3xl text-foreground sm:text-4xl">
+        <p className="label-eyebrow">Avantages</p>
+        <h2 className="mt-4 font-serif text-3xl leading-[1.1] text-foreground sm:text-4xl lg:text-5xl">
           Pourquoi ViniQode ?
         </h2>
       </div>
@@ -317,10 +258,10 @@ function Tarifs() {
       <div className="container-page">
         <div className="mx-auto max-w-2xl text-center">
           <p className="label-eyebrow">Tarifs</p>
-          <h2 className="mt-3 font-serif text-3xl text-foreground sm:text-4xl">
+          <h2 className="mt-4 font-serif text-3xl leading-[1.1] text-foreground sm:text-4xl lg:text-5xl">
             Commencez gratuitement.
           </h2>
-          <p className="mt-3 text-base text-muted">
+          <p className="mt-5 text-base leading-relaxed text-muted">
             Évoluez quand vous en avez besoin.
           </p>
         </div>
@@ -337,7 +278,7 @@ function Tarifs() {
               "Sans carte bancaire",
             ]}
             cta="Commencer gratuitement"
-            ctaHref="/register"
+            ctaHref="/signup"
             ctaVariant="outline"
           />
           <PricingCard
@@ -352,7 +293,7 @@ function Tarifs() {
               "Support email sous 48 h",
             ]}
             cta="Choisir Essentiel"
-            ctaHref="/register?plan=essentiel"
+            ctaHref="/signup?plan=essentiel"
             ctaVariant="primary"
           />
           <PricingCard
@@ -366,7 +307,7 @@ function Tarifs() {
               "Support prioritaire sous 24 h",
             ]}
             cta="Choisir Pro"
-            ctaHref="/register?plan=pro"
+            ctaHref="/signup?plan=pro"
             ctaVariant="secondary"
           />
         </div>
@@ -486,12 +427,25 @@ function Faq() {
 
   return (
     <section id="a-propos" className="container-page py-20 sm:py-24">
-      <div className="mx-auto max-w-3xl">
-        <h2 className="text-center font-serif text-3xl text-foreground sm:text-4xl">
-          Questions fréquentes.
-        </h2>
+      <div className="grid gap-12 lg:grid-cols-[2fr_3fr] lg:gap-20">
+        <div className="lg:sticky lg:top-28 lg:self-start">
+          <p className="label-eyebrow">FAQ</p>
+          <h2 className="mt-4 font-serif text-3xl leading-[1.1] text-foreground sm:text-4xl lg:text-5xl">
+            Questions fréquentes.
+          </h2>
+          <p className="mt-6 max-w-sm text-sm leading-relaxed text-muted">
+            Vous avez une autre question ?{" "}
+            <Link
+              href="mailto:contact@viniqode.fr"
+              className="text-accent hover:underline"
+            >
+              Contactez-nous
+            </Link>{" "}
+            — réponse sous 24 h.
+          </p>
+        </div>
 
-        <Accordion type="single" collapsible className="mt-10">
+        <Accordion type="single" collapsible>
           {items.map((item, idx) => (
             <AccordionItem key={item.q} value={`item-${idx}`}>
               <AccordionTrigger>{item.q}</AccordionTrigger>
