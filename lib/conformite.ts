@@ -8,31 +8,24 @@
 
 import type { Cuvee } from "./database.types";
 
-export type ChampProbleme =
-  | "ingredients"
-  | "nutrition"
-  | "allergenes"
-  | "email_non_confirme"
-  | "brouillon";
+export type ChampProbleme = "ingredients" | "nutrition";
 
 export interface ProblemeCuvee {
   champ: ChampProbleme;
   message: string;
 }
 
+export type EtatCuvee = "brouillon" | "a_completer" | "conforme";
+
 export interface ResultatCuvee {
   id: string;
   nom: string;
   conforme: boolean;
+  etat: EtatCuvee;
   problemes: ProblemeCuvee[];
 }
 
-export type NiveauConformite =
-  | "a_demarrer"
-  | "en_cours"
-  | "action_requise"
-  | "email_a_confirmer"
-  | "conforme";
+export type NiveauConformite = "a_demarrer" | "action_requise" | "conforme";
 
 export type CouleurConformite = "gray" | "orange" | "red" | "green";
 
@@ -43,7 +36,9 @@ export interface ResultatGlobal {
   couleur: CouleurConformite;
   cuvees_problematiques: ResultatCuvee[];
   nb_total_cuvees: number;
+  nb_actifs: number;
   nb_conformes: number;
+  nb_brouillons: number;
 }
 
 interface UserConformite {
@@ -65,13 +60,19 @@ function ingredientsManquants(cuvee: Cuvee): boolean {
 
 export function analyserCuvee(
   cuvee: Cuvee,
-  user: UserConformite,
+  _user: UserConformite,
 ): ResultatCuvee {
-  const problemes: ProblemeCuvee[] = [];
-
   if (cuvee.statut === "brouillon") {
-    problemes.push({ champ: "brouillon", message: "Cuvée non publiée" });
+    return {
+      id: cuvee.id,
+      nom: cuvee.nom,
+      conforme: false,
+      etat: "brouillon",
+      problemes: [],
+    };
   }
+
+  const problemes: ProblemeCuvee[] = [];
 
   if (ingredientsManquants(cuvee)) {
     problemes.push({ champ: "ingredients", message: "Ingrédients manquants" });
@@ -84,18 +85,22 @@ export function analyserCuvee(
     });
   }
 
-  if (cuvee.statut === "actif" && !user.email_confirmed_at) {
-    problemes.push({
-      champ: "email_non_confirme",
-      message: "Email à confirmer",
-    });
+  if (problemes.length > 0) {
+    return {
+      id: cuvee.id,
+      nom: cuvee.nom,
+      conforme: false,
+      etat: "a_completer",
+      problemes,
+    };
   }
 
   return {
     id: cuvee.id,
     nom: cuvee.nom,
-    conforme: problemes.length === 0,
-    problemes,
+    conforme: true,
+    etat: "conforme",
+    problemes: [],
   };
 }
 
@@ -104,61 +109,45 @@ export function analyserConformiteGlobale(
   user: UserConformite,
 ): ResultatGlobal {
   const nb_total = cuvees.length;
+  const actifs = cuvees.filter((c) => c.statut === "actif");
+  const brouillons = cuvees.filter((c) => c.statut === "brouillon");
+  const nb_actifs = actifs.length;
+  const nb_brouillons = brouillons.length;
 
-  if (nb_total === 0) {
+  const resultatsActifs = actifs.map((c) => analyserCuvee(c, user));
+  const a_completer = resultatsActifs.filter((r) => r.etat === "a_completer");
+  const nb_conformes = resultatsActifs.filter((r) => r.etat === "conforme").length;
+
+  if (nb_actifs === 0) {
+    const sous_texte =
+      nb_brouillons > 0
+        ? `${nb_brouillons} cuvée${nb_brouillons > 1 ? "s" : ""} en brouillon`
+        : "Créez votre première cuvée";
     return {
       niveau: "a_demarrer",
-      label: "À démarrer",
-      sous_texte: "Créez votre première cuvée",
+      label: nb_brouillons > 0 ? "Aucune cuvée publiée" : "À démarrer",
+      sous_texte,
       couleur: "gray",
       cuvees_problematiques: [],
-      nb_total_cuvees: 0,
-      nb_conformes: 0,
-    };
-  }
-
-  const resultats = cuvees.map((c) => analyserCuvee(c, user));
-  const nb_conformes = resultats.filter((r) => r.conforme).length;
-  const non_conformes = resultats.filter((r) => !r.conforme);
-  const cuvees_publiees = cuvees.filter((c) => c.statut === "actif");
-  const toutes_brouillon = cuvees_publiees.length === 0;
-
-  if (toutes_brouillon) {
-    const n = nb_total;
-    return {
-      niveau: "en_cours",
-      label: "En cours",
-      sous_texte: `${n} cuvée${n > 1 ? "s" : ""} à finaliser`,
-      couleur: "orange",
-      cuvees_problematiques: non_conformes,
       nb_total_cuvees: nb_total,
+      nb_actifs,
       nb_conformes,
+      nb_brouillons,
     };
   }
 
-  if (!user.email_confirmed_at) {
-    return {
-      niveau: "email_a_confirmer",
-      label: "Email à confirmer",
-      sous_texte: "Confirmez votre email pour activer vos QR codes",
-      couleur: "orange",
-      cuvees_problematiques: non_conformes,
-      nb_total_cuvees: nb_total,
-      nb_conformes,
-    };
-  }
-
-  if (non_conformes.length > 0) {
+  if (a_completer.length > 0) {
+    const x = a_completer.length;
     return {
       niveau: "action_requise",
       label: "Action requise",
-      sous_texte: `${non_conformes.length} cuvée${
-        non_conformes.length > 1 ? "s" : ""
-      } sur ${nb_total} à compléter`,
+      sous_texte: `${x} cuvée${x > 1 ? "s" : ""} sur ${nb_actifs} à compléter`,
       couleur: "red",
-      cuvees_problematiques: non_conformes,
+      cuvees_problematiques: a_completer,
       nb_total_cuvees: nb_total,
+      nb_actifs,
       nb_conformes,
+      nb_brouillons,
     };
   }
 
@@ -169,6 +158,8 @@ export function analyserConformiteGlobale(
     couleur: "green",
     cuvees_problematiques: [],
     nb_total_cuvees: nb_total,
+    nb_actifs,
     nb_conformes,
+    nb_brouillons,
   };
 }

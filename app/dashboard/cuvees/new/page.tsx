@@ -35,17 +35,22 @@ export default async function NewCuveePage({ searchParams }: PageProps) {
   }
 
   const isEdit = Boolean(existing);
+  const titre = isEdit
+    ? existing?.nom
+      ? `Modifier la cuvée ${existing.nom}`
+      : "Modifier la cuvée"
+    : "Nouvelle cuvée";
 
   return (
     <main className="flex-1 px-6 py-8 sm:px-8 sm:py-10">
       <div className="mx-auto max-w-4xl">
         <header className="mb-8">
           <h1 className="font-serif text-2xl text-foreground sm:text-3xl">
-            {isEdit ? "Modifier la cuvée" : "Nouvelle cuvée"}
+            {titre}
           </h1>
           <p className="mt-1 text-sm text-muted">
             {isEdit
-              ? "Complétez les informations manquantes pour rendre votre cuvée conforme."
+              ? "Vos modifications peuvent être sauvegardées à tout moment. Le QR code reste valide."
               : "Renseignez votre cuvée en 4 étapes pour générer son e-label conforme."}
           </p>
         </header>
