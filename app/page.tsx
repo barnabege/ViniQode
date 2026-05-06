@@ -19,8 +19,8 @@ import { Footer } from "@/components/landing/Footer";
 import { SolutionSection } from "@/components/landing/SolutionSection";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { ELabelMockup } from "@/components/landing/ELabelMockup";
-import { PhoneMockup } from "@/components/landing/PhoneMockup";
+import { PhoneAnimation } from "@/components/landing/PhoneAnimation";
+import { ScrollResetOnReload } from "@/components/landing/ScrollResetOnReload";
 import {
   Accordion,
   AccordionContent,
@@ -32,6 +32,7 @@ export default function HomePage() {
   return (
     <>
       <Navigation />
+      <ScrollResetOnReload />
       <main>
         <Hero />
         <TrustBar />
@@ -50,20 +51,20 @@ export default function HomePage() {
 function Hero() {
   return (
     <section className="relative">
-      <div className="container-page grid min-h-[90vh] items-center gap-12 py-16 lg:grid-cols-2 lg:py-24">
-        <div className="animate-slide-up">
+      <div className="mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-12 px-6 py-20 lg:grid-cols-2 lg:gap-16 lg:px-8 lg:py-28">
+        <div className="animate-hero-in">
           <Badge variant="success" size="md">
             <Check className="h-3.5 w-3.5" />
             Conforme au règlement (UE) 2021/2117
           </Badge>
 
-          <h1 className="mt-7 font-serif text-5xl leading-[1.05] text-foreground sm:text-6xl lg:text-[64px]">
+          <h1 className="mt-6 max-w-xl font-serif text-5xl font-normal leading-[1.05] tracking-tight text-foreground lg:text-6xl">
             Votre e-label QR code
             <br />
             conforme en 10 minutes.
           </h1>
 
-          <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted sm:text-xl">
+          <p className="mt-6 max-w-md text-lg leading-relaxed text-muted">
             47 000 vignerons ont l'obligation d'afficher un QR code sur
             leurs bouteilles depuis décembre 2023. ViniQode est la solution
             la plus simple du marché.
@@ -81,15 +82,13 @@ function Hero() {
             </Button>
           </div>
 
-          <p className="mt-5 text-sm text-muted">
+          <p className="mt-6 text-sm text-muted">
             Sans carte bancaire · 3 cuvées gratuites · Conforme garanti
           </p>
         </div>
 
         <div className="hidden md:flex md:justify-center lg:justify-end">
-          <PhoneMockup>
-            <ELabelMockup />
-          </PhoneMockup>
+          <PhoneAnimation />
         </div>
       </div>
     </section>
@@ -108,7 +107,7 @@ function TrustBar() {
     <section className="border-y border-border bg-surface">
       <div className="container-page py-14 sm:py-16">
         <p className="label-eyebrow text-center">
-          Rejoignez les vignerons qui font confiance à ViniQode
+          VINIQODE EN UN COUP D'ŒIL
         </p>
         <div className="mt-10 grid gap-10 sm:grid-cols-3 sm:gap-8">
           {stats.map((s) => (

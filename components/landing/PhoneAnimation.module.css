@@ -1,0 +1,679 @@
+/* ============================================================
+   PhoneAnimation — animation 100% CSS, boucle infinie 10s.
+   Pour ralentir / accélérer : modifier --phone-duration ci-dessous.
+   Tous les pourcentages des keyframes restent intacts (proportionnels).
+   ============================================================ */
+
+.wrapper {
+  --phone-duration: 10s;
+  --accent: #16a34a;
+  --accent-dark: #15803d;
+  --accent-light: #dcfce7;
+  --dot-idle: #cbd5e1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+}
+
+.chassis {
+  position: relative;
+  width: 280px;
+  height: 568px;
+  border-radius: 48px;
+  background: linear-gradient(145deg, #1a1a1a 0%, #000 50%, #2a2a2a 100%);
+  padding: 10px;
+  box-shadow:
+    0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 50px 100px -20px rgba(0, 0, 0, 0.2),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  animation: hapticShake var(--phone-duration) linear infinite;
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .chassis {
+    width: 320px;
+    height: 650px;
+    border-radius: 52px;
+    padding: 12px;
+  }
+}
+
+.chassis::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.18), transparent 40%);
+  pointer-events: none;
+}
+
+.notch {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 28px;
+  border-radius: 20px;
+  background: #000;
+  z-index: 30;
+  box-shadow: inset 0 0 2px rgba(255, 255, 255, 0.1);
+}
+
+.screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 36px;
+  overflow: hidden;
+  background: #000;
+}
+
+@media (min-width: 768px) {
+  .screen {
+    border-radius: 40px;
+  }
+}
+
+.statusBar {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  z-index: 25;
+  font-variant-numeric: tabular-nums;
+  animation: statusBarColor var(--phone-duration) linear infinite;
+}
+
+.statusBarIcons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* === Scène 1+2 : viseur caméra ======================================= */
+.cameraScene {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 40%, #3a1818 0%, #1a0a0a 60%, #050202 100%);
+  animation: cameraLayer var(--phone-duration) linear infinite;
+  z-index: 10;
+}
+
+.bottle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90px;
+  height: auto;
+  animation: bottleBreath 3s ease-in-out infinite;
+}
+
+.scanFrame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200px;
+  height: 200px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.corner {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  animation: cornerSize var(--phone-duration) linear infinite;
+}
+
+.corner::before,
+.corner::after {
+  content: "";
+  position: absolute;
+  background: #fff;
+  animation: cornerColor var(--phone-duration) linear infinite;
+}
+
+.cornerTl {
+  top: 0;
+  left: 0;
+}
+.cornerTl::before {
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  border-top-left-radius: 3px;
+}
+.cornerTl::after {
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  border-top-left-radius: 3px;
+}
+
+.cornerTr {
+  top: 0;
+  right: 0;
+}
+.cornerTr::before {
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 3px;
+  border-top-right-radius: 3px;
+}
+.cornerTr::after {
+  top: 0;
+  right: 0;
+  width: 3px;
+  height: 100%;
+  border-top-right-radius: 3px;
+}
+
+.cornerBl {
+  bottom: 0;
+  left: 0;
+}
+.cornerBl::before {
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  border-bottom-left-radius: 3px;
+}
+.cornerBl::after {
+  bottom: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  border-bottom-left-radius: 3px;
+}
+
+.cornerBr {
+  bottom: 0;
+  right: 0;
+}
+.cornerBr::before {
+  bottom: 0;
+  right: 0;
+  width: 100%;
+  height: 3px;
+  border-bottom-right-radius: 3px;
+}
+.cornerBr::after {
+  bottom: 0;
+  right: 0;
+  width: 3px;
+  height: 100%;
+  border-bottom-right-radius: 3px;
+}
+
+.scanLine {
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  height: 2px;
+  top: 4px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--accent) 20%,
+    #4ade80 50%,
+    var(--accent) 80%,
+    transparent 100%
+  );
+  box-shadow: 0 0 12px var(--accent), 0 0 4px #4ade80;
+  border-radius: 2px;
+  animation: scanMove 2s ease-in-out infinite;
+}
+
+.toast {
+  position: absolute;
+  bottom: 64px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 9px 16px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 5;
+}
+
+.toastPointez {
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  backdrop-filter: blur(8px);
+  animation: toastPointez var(--phone-duration) linear infinite;
+}
+
+.toastDetect {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(22, 163, 74, 0.45);
+  animation: toastDetect var(--phone-duration) linear infinite;
+}
+
+/* === Scène 3+4 : e-label ============================================= */
+.elabelScene {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  padding: 56px 22px 24px;
+  font-size: 11px;
+  line-height: 1.55;
+  color: #111827;
+  overflow: hidden;
+  transform: translateY(100%);
+  z-index: 15;
+  animation: elabelSlide var(--phone-duration) cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.elabelHeader {
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+}
+
+.elabelEyebrow {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: #6b7280;
+  margin: 0 0 4px;
+}
+
+.elabelTitle {
+  font-family: Georgia, serif;
+  font-size: 16px;
+  line-height: 1.2;
+  color: #111827;
+  margin: 0 0 4px;
+  letter-spacing: -0.01em;
+}
+
+.elabelSubtitle {
+  font-size: 10.5px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.elabelSection {
+  margin-bottom: 12px;
+}
+
+.elabelSectionTitle {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: #6b7280;
+  margin: 0 0 5px;
+}
+
+.elabelText {
+  font-size: 11px;
+  color: #111827;
+  margin: 0;
+}
+
+.elabelText strong {
+  font-weight: 600;
+}
+
+.elabelTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.elabelTable td {
+  padding: 4px 0;
+  border-top: 1px solid #f3f4f6;
+}
+
+.elabelTable tr:first-child td {
+  border-top: none;
+}
+
+.elabelTable td:last-child {
+  text-align: right;
+}
+
+.elabelRowBold td {
+  font-weight: 600;
+}
+
+.elabelIndent td:first-child {
+  padding-left: 10px;
+  color: #6b7280;
+}
+
+.elabelFooter {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 10px;
+  margin-top: 12px;
+  font-size: 9.5px;
+  line-height: 1.5;
+  color: #6b7280;
+}
+
+/* === Progress dots =================================================== */
+.dots {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  height: 6px;
+}
+
+.dot {
+  height: 6px;
+  width: 6px;
+  border-radius: 999px;
+  background: var(--dot-idle);
+}
+
+.dot1 {
+  animation: dot1 var(--phone-duration) linear infinite;
+}
+.dot2 {
+  animation: dot2 var(--phone-duration) linear infinite;
+}
+.dot3 {
+  animation: dot3 var(--phone-duration) linear infinite;
+}
+.dot4 {
+  animation: dot4 var(--phone-duration) linear infinite;
+}
+
+/* ============================================================
+   Keyframes
+   Timeline 10s = 100% :
+     0–30%   Scène 1 (viseur caméra)
+    30–45%   Scène 2 (QR détecté, coins verts)
+    45–53%   Scène 3 (slide-up e-label)
+    53–93%   Scène 4 (e-label visible)
+    93–100%  Fondu retour scène 1
+   ============================================================ */
+
+@keyframes scanMove {
+  0% {
+    top: 4px;
+    opacity: 0.7;
+  }
+  50% {
+    top: calc(100% - 6px);
+    opacity: 1;
+  }
+  100% {
+    top: 4px;
+    opacity: 0.7;
+  }
+}
+
+@keyframes bottleBreath {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.05);
+  }
+}
+
+@keyframes cameraLayer {
+  0%,
+  45% {
+    opacity: 1;
+  }
+  53%,
+  92% {
+    opacity: 0;
+  }
+  96%,
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes cornerSize {
+  0%,
+  29% {
+    width: 30px;
+    height: 30px;
+  }
+  30% {
+    width: 44px;
+    height: 44px;
+  }
+  32%,
+  44% {
+    width: 40px;
+    height: 40px;
+  }
+  46%,
+  100% {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+@keyframes cornerColor {
+  0%,
+  29% {
+    background: #fff;
+  }
+  30%,
+  44% {
+    background: var(--accent);
+  }
+  46%,
+  100% {
+    background: #fff;
+  }
+}
+
+@keyframes toastPointez {
+  0%,
+  28% {
+    opacity: 1;
+  }
+  30%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes toastDetect {
+  0%,
+  28% {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.95);
+  }
+  30%,
+  44% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+  46%,
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.95);
+  }
+}
+
+@keyframes elabelSlide {
+  0%,
+  44% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  53%,
+  92% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  96%,
+  100% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes statusBarColor {
+  0%,
+  48% {
+    color: #fff;
+  }
+  53%,
+  92% {
+    color: #111827;
+  }
+  96%,
+  100% {
+    color: #fff;
+  }
+}
+
+@keyframes hapticShake {
+  0%,
+  29%,
+  33%,
+  100% {
+    transform: translate(0, 0);
+  }
+  30% {
+    transform: translate(-2px, 0);
+  }
+  31% {
+    transform: translate(2px, 0);
+  }
+  32% {
+    transform: translate(-1px, 0);
+  }
+}
+
+@keyframes dot1 {
+  0%,
+  28% {
+    width: 18px;
+    background: var(--accent);
+  }
+  30%,
+  100% {
+    width: 6px;
+    background: var(--dot-idle);
+  }
+}
+
+@keyframes dot2 {
+  0%,
+  28% {
+    width: 6px;
+    background: var(--dot-idle);
+  }
+  30%,
+  43% {
+    width: 18px;
+    background: var(--accent);
+  }
+  45%,
+  100% {
+    width: 6px;
+    background: var(--dot-idle);
+  }
+}
+
+@keyframes dot3 {
+  0%,
+  43% {
+    width: 6px;
+    background: var(--dot-idle);
+  }
+  45%,
+  51% {
+    width: 18px;
+    background: var(--accent);
+  }
+  53%,
+  100% {
+    width: 6px;
+    background: var(--dot-idle);
+  }
+}
+
+@keyframes dot4 {
+  0%,
+  51% {
+    width: 6px;
+    background: var(--dot-idle);
+  }
+  53%,
+  92% {
+    width: 18px;
+    background: var(--accent);
+  }
+  94%,
+  100% {
+    width: 6px;
+    background: var(--dot-idle);
+  }
+}
+
+/* ============================================================
+   prefers-reduced-motion : fige sur la scène 4 (e-label visible)
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .chassis,
+  .cameraScene,
+  .bottle,
+  .scanLine,
+  .corner,
+  .corner::before,
+  .corner::after,
+  .toastPointez,
+  .toastDetect,
+  .statusBar,
+  .elabelScene,
+  .dot1,
+  .dot2,
+  .dot3,
+  .dot4 {
+    animation: none !important;
+  }
+  .cameraScene {
+    opacity: 0;
+  }
+  .elabelScene {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  .statusBar {
+    color: #111827;
+  }
+  .toastPointez,
+  .toastDetect {
+    opacity: 0;
+  }
+  .dot4 {
+    width: 18px;
+    background: var(--accent);
+  }
+}
