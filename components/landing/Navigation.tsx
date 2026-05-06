@@ -55,13 +55,13 @@ export function Navigation() {
 
         <div className="hidden items-center gap-3 md:flex">
           <Link
-            href="/login"
+            href="/connexion"
             className="text-sm text-muted transition-colors hover:text-foreground"
           >
             Se connecter
           </Link>
           <Button asChild size="sm">
-            <Link href="/signup">Commencer gratuitement</Link>
+            <Link href="/inscription">Commencer gratuitement</Link>
           </Button>
         </div>
 
@@ -90,10 +90,10 @@ export function Navigation() {
             ))}
             <div className="mt-2 flex flex-col gap-2 border-t border-border pt-4">
               <Button asChild variant="secondary" size="md" block>
-                <Link href="/login">Se connecter</Link>
+                <Link href="/connexion">Se connecter</Link>
               </Button>
               <Button asChild size="md" block>
-                <Link href="/signup">Commencer gratuitement</Link>
+                <Link href="/inscription">Commencer gratuitement</Link>
               </Button>
             </div>
           </nav>

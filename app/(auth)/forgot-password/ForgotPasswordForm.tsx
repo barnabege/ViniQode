@@ -50,7 +50,7 @@ export function ForgotPasswordForm() {
           vous recevrez sous peu un lien pour réinitialiser votre mot de passe.
         </p>
         <Link
-          href="/login"
+          href="/connexion"
           className="inline-flex items-center gap-1.5 text-sm text-accent hover:underline"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
@@ -84,7 +84,7 @@ export function ForgotPasswordForm() {
       </Button>
 
       <Link
-        href="/login"
+        href="/connexion"
         className="flex items-center justify-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground"
       >
         <ArrowLeft className="h-3.5 w-3.5" />

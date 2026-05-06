@@ -16,7 +16,7 @@ export default function SignupPage() {
       subtitle={
         <>
           Déjà un compte ?{" "}
-          <Link href="/login" className="text-accent hover:underline">
+          <Link href="/connexion" className="text-accent hover:underline">
             Se connecter
           </Link>
         </>

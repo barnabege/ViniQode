@@ -19,7 +19,7 @@ export default function LoginPage({ searchParams }: PageProps) {
       subtitle={
         <>
           Pas encore de compte ?{" "}
-          <Link href="/signup" className="text-accent hover:underline">
+          <Link href="/inscription" className="text-accent hover:underline">
             Créer un compte
           </Link>
         </>

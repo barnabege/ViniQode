@@ -9,20 +9,21 @@ export async function GET(request: NextRequest) {
   const next = sanitizeNext(searchParams.get("next"));
 
   if (!token_hash || !type) {
-    return NextResponse.redirect(`${origin}/login?error=invalid_confirmation`);
+    return NextResponse.redirect(`${origin}/connexion?error=invalid_confirmation`);
   }
 
   const supabase = createSupabaseServerClient();
   const { error } = await supabase.auth.verifyOtp({ token_hash, type });
 
   if (error) {
-    return NextResponse.redirect(`${origin}/login?error=confirmation_failed`);
+    return NextResponse.redirect(`${origin}/connexion?error=confirmation_failed`);
   }
 
   return NextResponse.redirect(`${origin}${next}`);
 }
 
 function sanitizeNext(next: string | null): string {
-  if (!next || !next.startsWith("/") || next.startsWith("//")) return "/dashboard";
+  if (!next || !next.startsWith("/") || next.startsWith("//"))
+    return "/onboarding/bienvenue";
   return next;
 }

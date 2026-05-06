@@ -71,7 +71,7 @@ function Hero() {
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button asChild size="lg">
-              <Link href="/signup">
+              <Link href="/inscription">
                 Créer mon e-label gratuitement
                 <ArrowRight className="h-4 w-4" />
               </Link>
@@ -278,7 +278,7 @@ function Tarifs() {
               "Sans carte bancaire",
             ]}
             cta="Commencer gratuitement"
-            ctaHref="/signup"
+            ctaHref="/inscription"
             ctaVariant="outline"
           />
           <PricingCard
@@ -293,7 +293,7 @@ function Tarifs() {
               "Support email sous 48 h",
             ]}
             cta="Choisir Essentiel"
-            ctaHref="/signup?plan=essentiel"
+            ctaHref="/inscription?plan=essentiel"
             ctaVariant="primary"
           />
           <PricingCard
@@ -307,7 +307,7 @@ function Tarifs() {
               "Support prioritaire sous 24 h",
             ]}
             cta="Choisir Pro"
-            ctaHref="/signup?plan=pro"
+            ctaHref="/inscription?plan=pro"
             ctaVariant="secondary"
           />
         </div>

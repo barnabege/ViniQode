@@ -54,7 +54,7 @@ export function SignupForm() {
         `Un email de confirmation a été envoyé à ${values.email}. Cliquez sur le lien pour activer votre compte.`,
       );
     } else {
-      window.location.assign("/dashboard");
+      window.location.assign("/onboarding/bienvenue");
     }
   };
 

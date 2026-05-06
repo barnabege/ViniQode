@@ -28,14 +28,15 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
-  const isDashboard = pathname.startsWith("/dashboard");
+  const isProtected =
+    pathname.startsWith("/dashboard") || pathname.startsWith("/onboarding");
   const isAuthPage =
-    pathname === "/login" ||
-    pathname === "/signup" ||
+    pathname === "/connexion" ||
+    pathname === "/inscription" ||
     pathname === "/forgot-password";
 
-  if (isDashboard && !user) {
-    const loginUrl = new URL("/login", request.url);
+  if (isProtected && !user) {
+    const loginUrl = new URL("/connexion", request.url);
     loginUrl.searchParams.set("redirectTo", pathname);
     return NextResponse.redirect(loginUrl);
   }
@@ -48,5 +49,11 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/login", "/signup", "/forgot-password"],
+  matcher: [
+    "/dashboard/:path*",
+    "/onboarding/:path*",
+    "/connexion",
+    "/inscription",
+    "/forgot-password",
+  ],
 };
