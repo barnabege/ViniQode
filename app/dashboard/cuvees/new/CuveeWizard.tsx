@@ -24,7 +24,7 @@ import { calculerNutrition, type NutritionValues } from "@/lib/nutrition";
 import { createSupabaseBrowserClient } from "@/lib/supabase";
 import { generateQrCode, type QrCodeAssets } from "@/lib/qrcode";
 import { slugify } from "@/lib/utils";
-import type { TypeVin } from "@/lib/database.types";
+import type { Cuvee, TypeVin } from "@/lib/database.types";
 
 const STEPS = [
   { label: "Informations", description: "Identité de la cuvée" },
@@ -73,15 +73,40 @@ const INITIAL: FormState = {
   ingredients: ["raisins"],
 };
 
+function initialFromCuvee(c: Cuvee): FormState {
+  const ings = Array.isArray(c.ingredients)
+    ? (c.ingredients as string[])
+    : ["raisins"];
+  return {
+    nom: c.nom ?? "",
+    appellation: c.appellation ?? "",
+    millesime: c.millesime ? String(c.millesime) : "",
+    type_vin: c.type_vin ?? "",
+    degre_alcool: c.degre_alcool != null ? String(c.degre_alcool) : "",
+    volume_cl: c.volume_cl ? String(c.volume_cl) : "",
+    sucres_residuels:
+      c.sucres_residuels != null ? String(c.sucres_residuels) : "0",
+    ingredients: ings.length > 0 ? ings : ["raisins"],
+  };
+}
+
 interface CuveeWizardProps {
   userId: string;
   domaine: string;
+  existingCuvee?: Cuvee | null;
 }
 
-export function CuveeWizard({ userId, domaine }: CuveeWizardProps) {
+export function CuveeWizard({
+  userId,
+  domaine,
+  existingCuvee,
+}: CuveeWizardProps) {
   const router = useRouter();
+  const isEdit = Boolean(existingCuvee);
   const [step, setStep] = React.useState(0);
-  const [form, setForm] = React.useState<FormState>(INITIAL);
+  const [form, setForm] = React.useState<FormState>(
+    existingCuvee ? initialFromCuvee(existingCuvee) : INITIAL,
+  );
   const [qrAssets, setQrAssets] = React.useState<QrCodeAssets | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -134,38 +159,52 @@ export function CuveeWizard({ userId, domaine }: CuveeWizardProps) {
     setSubmitting(true);
     try {
       const supabase = createSupabaseBrowserClient();
-      const { data: created, error: insertError } = await supabase
-        .from("cuvees")
-        .insert({
-          user_id: userId,
-          nom: form.nom,
-          appellation: form.appellation,
-          millesime: parseInt(form.millesime, 10),
-          type_vin: form.type_vin as TypeVin,
-          degre_alcool: parseFloat(form.degre_alcool),
-          volume_cl: parseInt(form.volume_cl, 10),
-          sucres_residuels: parseFloat(form.sucres_residuels),
-          ingredients: form.ingredients,
-          allergenes,
-          valeur_energetique_kj: nutrition.energieKj,
-          valeur_energetique_kcal: nutrition.energieKcal,
-          glucides: nutrition.glucides,
-          sucres_nutritionnels: nutrition.sucres,
-          statut: "actif",
-          qr_code_url: null,
-          elabel_url: null,
-        })
-        .select()
-        .single();
-      if (insertError) throw insertError;
+      const fields = {
+        nom: form.nom,
+        appellation: form.appellation,
+        millesime: parseInt(form.millesime, 10),
+        type_vin: form.type_vin as TypeVin,
+        degre_alcool: parseFloat(form.degre_alcool),
+        volume_cl: parseInt(form.volume_cl, 10),
+        sucres_residuels: parseFloat(form.sucres_residuels),
+        ingredients: form.ingredients,
+        allergenes,
+        valeur_energetique_kj: nutrition.energieKj,
+        valeur_energetique_kcal: nutrition.energieKcal,
+        glucides: nutrition.glucides,
+        sucres_nutritionnels: nutrition.sucres,
+        statut: "actif" as const,
+      };
 
-      const elabelUrl = `${window.location.origin}/elabel/${created.id}`;
+      let cuveeId: string;
+
+      if (existingCuvee) {
+        const { error: updateError } = await supabase
+          .from("cuvees")
+          .update(fields)
+          .eq("id", existingCuvee.id);
+        if (updateError) throw updateError;
+        cuveeId = existingCuvee.id;
+      } else {
+        const { data: created, error: insertError } = await supabase
+          .from("cuvees")
+          .insert({ user_id: userId, ...fields, qr_code_url: null, elabel_url: null })
+          .select()
+          .single();
+        if (insertError) throw insertError;
+        cuveeId = created.id;
+      }
+
+      const elabelUrl =
+        existingCuvee?.elabel_url ?? `${window.location.origin}/elabel/${cuveeId}`;
       const assets = await generateQrCode(elabelUrl);
 
-      await supabase
-        .from("cuvees")
-        .update({ elabel_url: elabelUrl })
-        .eq("id", created.id);
+      if (!existingCuvee?.elabel_url) {
+        await supabase
+          .from("cuvees")
+          .update({ elabel_url: elabelUrl })
+          .eq("id", cuveeId);
+      }
 
       setQrAssets(assets);
     } catch (err) {
@@ -214,6 +253,7 @@ export function CuveeWizard({ userId, domaine }: CuveeWizardProps) {
             submitting={submitting}
             error={error}
             onFinish={() => router.push("/dashboard")}
+            isEdit={isEdit}
           />
         )}
       </div>
@@ -544,6 +584,7 @@ function Step4({
   submitting,
   error,
   onFinish,
+  isEdit,
 }: {
   form: FormState;
   nutrition: NutritionValues;
@@ -555,6 +596,7 @@ function Step4({
   submitting: boolean;
   error: string | null;
   onFinish: () => void;
+  isEdit: boolean;
 }) {
   return (
     <div className="space-y-6">
@@ -601,8 +643,9 @@ function Step4({
           {qrAssets ? (
             <>
               <div className="rounded-md border border-accent/30 bg-accent/5 px-4 py-3 text-sm text-foreground">
-                Votre QR code a été généré avec succès. Téléchargez-le et
-                transmettez-le à votre imprimeur.
+                {isEdit
+                  ? "Cuvée mise à jour. Votre QR code reste valide."
+                  : "Votre QR code a été généré avec succès. Téléchargez-le et transmettez-le à votre imprimeur."}
               </div>
               <QRCodePreview
                 svg={qrAssets.svg}
@@ -617,8 +660,9 @@ function Step4({
           ) : (
             <>
               <p className="text-xs text-muted">
-                Le QR code est généré en SVG vectoriel et PNG haute résolution
-                (300 dpi), prêt pour votre imprimeur.
+                {isEdit
+                  ? "Vos modifications seront enregistrées. Le QR code existant reste utilisable."
+                  : "Le QR code est généré en SVG vectoriel et PNG haute résolution (300 dpi), prêt pour votre imprimeur."}
               </p>
               <Button
                 block
@@ -629,8 +673,10 @@ function Step4({
                 {submitting ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Génération en cours…
+                    {isEdit ? "Mise à jour…" : "Génération en cours…"}
                   </>
+                ) : isEdit ? (
+                  "Mettre à jour la cuvée"
                 ) : (
                   "Générer mon e-label et télécharger le QR code"
                 )}

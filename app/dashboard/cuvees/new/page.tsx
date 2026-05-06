@@ -2,10 +2,15 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { CuveeWizard } from "./CuveeWizard";
+import type { Cuvee } from "@/lib/database.types";
 
 export const metadata = { title: "Nouvelle cuvée" };
 
-export default async function NewCuveePage() {
+interface PageProps {
+  searchParams: { id?: string };
+}
+
+export default async function NewCuveePage({ searchParams }: PageProps) {
   const supabase = createSupabaseServerClient();
   const {
     data: { user },
@@ -18,20 +23,36 @@ export default async function NewCuveePage() {
     .eq("id", user.id)
     .single<{ nom_domaine: string | null }>();
 
+  let existing: Cuvee | null = null;
+  if (searchParams.id) {
+    const { data } = await supabase
+      .from("cuvees")
+      .select("*")
+      .eq("id", searchParams.id)
+      .eq("user_id", user.id)
+      .single<Cuvee>();
+    existing = data ?? null;
+  }
+
+  const isEdit = Boolean(existing);
+
   return (
     <main className="flex-1 px-6 py-8 sm:px-8 sm:py-10">
       <div className="mx-auto max-w-4xl">
         <header className="mb-8">
           <h1 className="font-serif text-2xl text-foreground sm:text-3xl">
-            Nouvelle cuvée
+            {isEdit ? "Modifier la cuvée" : "Nouvelle cuvée"}
           </h1>
           <p className="mt-1 text-sm text-muted">
-            Renseignez votre cuvée en 4 étapes pour générer son e-label conforme.
+            {isEdit
+              ? "Complétez les informations manquantes pour rendre votre cuvée conforme."
+              : "Renseignez votre cuvée en 4 étapes pour générer son e-label conforme."}
           </p>
         </header>
         <CuveeWizard
           userId={user.id}
           domaine={profile?.nom_domaine ?? "Votre domaine"}
+          existingCuvee={existing}
         />
       </div>
     </main>

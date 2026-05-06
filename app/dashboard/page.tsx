@@ -5,7 +5,10 @@ import { redirect } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { CuveeCard } from "@/components/dashboard/CuveeCard";
+import { ConformiteCard } from "@/components/dashboard/ConformiteCard";
+import { ListeProblemes } from "@/components/dashboard/ListeProblemes";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { analyserConformiteGlobale } from "@/lib/conformite";
 import { formatDateFR } from "@/lib/utils";
 import type { Cuvee, Profile } from "@/lib/database.types";
 
@@ -36,6 +39,10 @@ export default async function DashboardPage() {
   const cuveesActives = cuvees.filter((c) => c.statut === "actif");
   const qrGeneres = cuvees.filter((c) => c.qr_code_url).length;
   const today = formatDateFR(new Date());
+
+  const resultatGlobal = analyserConformiteGlobale(cuvees, {
+    email_confirmed_at: user.email_confirmed_at ?? null,
+  });
 
   const isStarterAtLimit =
     (profile?.plan ?? "starter") === "starter" && cuvees.length >= FREE_LIMIT;
@@ -68,7 +75,7 @@ export default async function DashboardPage() {
             value={profile?.plan === "pro" ? "—" : "Pro requis"}
             muted={profile?.plan !== "pro"}
           />
-          <Kpi label="Conformité" value="✓ Conforme" success />
+          <ConformiteCard resultat={resultatGlobal} />
         </section>
 
         {isStarterAtLimit && (
@@ -100,11 +107,17 @@ export default async function DashboardPage() {
           ) : (
             <div className="space-y-3">
               {cuvees.map((c) => (
-                <CuveeCard key={c.id} cuvee={c} />
+                <CuveeCard
+                  key={c.id}
+                  cuvee={c}
+                  emailConfirmedAt={user.email_confirmed_at ?? null}
+                />
               ))}
             </div>
           )}
         </section>
+
+        <ListeProblemes resultat={resultatGlobal} email={user.email ?? ""} />
       </div>
     </main>
   );
