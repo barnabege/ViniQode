@@ -30,7 +30,7 @@ export function DownloadButtons({
   }
 
   return (
-    <div className="grid gap-2 sm:grid-cols-3">
+    <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
       <Button type="button" variant="secondary" onClick={downloadSvg}>
         <Download className="h-4 w-4" />
         SVG vectoriel

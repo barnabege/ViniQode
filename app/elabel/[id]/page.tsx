@@ -32,10 +32,13 @@ export default async function ELabelPage({ params }: PageProps) {
     .from("cuvees")
     .select("*")
     .eq("id", params.id)
-    .eq("statut", "actif")
     .single<Cuvee>();
 
   if (!data) notFound();
+
+  if (data.statut !== "actif") {
+    return <ELabelUnavailable />;
+  }
 
   const { data: producteur } = await supabase
     .from("profiles")
@@ -149,6 +152,22 @@ export default async function ELabelPage({ params }: PageProps) {
         </p>
         <p>Dernière mise à jour : {formatDateFR(data.updated_at)}</p>
       </footer>
+    </div>
+  );
+}
+
+function ELabelUnavailable() {
+  return (
+    <div className="mx-auto flex min-h-screen max-w-prose flex-col items-center justify-center px-5 py-10 text-center">
+      <p className="text-[11px] uppercase tracking-widest text-muted">
+        ViniQode
+      </p>
+      <h1 className="mt-3 font-serif text-2xl text-foreground">
+        Cette cuvée n'est pas encore disponible.
+      </h1>
+      <p className="mt-3 text-sm text-muted">
+        Le producteur finalise les informations légales.
+      </p>
     </div>
   );
 }

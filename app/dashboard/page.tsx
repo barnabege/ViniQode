@@ -2,9 +2,8 @@
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { redirect } from "next/navigation";
-import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { CuveeCard } from "@/components/dashboard/CuveeCard";
+import { CuveeListContainer } from "@/components/dashboard/CuveeListContainer";
 import { ConformiteCard } from "@/components/dashboard/ConformiteCard";
 import { ListeProblemes } from "@/components/dashboard/ListeProblemes";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
@@ -92,32 +91,12 @@ export default async function DashboardPage() {
           </section>
         )}
 
-        <section className="mt-10">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="font-serif text-xl text-foreground">Mes cuvées</h2>
-            {cuvees.length > 0 && (
-              <Badge variant="neutral">
-                {cuvees.length} cuvée{cuvees.length > 1 ? "s" : ""}
-              </Badge>
-            )}
-          </div>
+        <CuveeListContainer
+          cuvees={cuvees}
+          emailConfirmedAt={user.email_confirmed_at ?? null}
+        />
 
-          {cuvees.length === 0 ? (
-            <EmptyState />
-          ) : (
-            <div className="space-y-3">
-              {cuvees.map((c) => (
-                <CuveeCard
-                  key={c.id}
-                  cuvee={c}
-                  emailConfirmedAt={user.email_confirmed_at ?? null}
-                />
-              ))}
-            </div>
-          )}
-        </section>
-
-        <ListeProblemes resultat={resultatGlobal} email={user.email ?? ""} />
+        <ListeProblemes resultat={resultatGlobal} />
       </div>
     </main>
   );
@@ -150,21 +129,3 @@ function Kpi({ label, value, success, muted }: KpiProps) {
   );
 }
 
-function EmptyState() {
-  return (
-    <div className="rounded-md border border-dashed border-border bg-background p-12 text-center">
-      <p className="font-serif text-lg text-foreground">
-        Vous n'avez pas encore de cuvée.
-      </p>
-      <p className="mt-2 text-sm text-muted">
-        Créez votre première e-label en 10 minutes.
-      </p>
-      <Button asChild className="mt-6">
-        <Link href="/dashboard/cuvees/new">
-          <Plus className="h-4 w-4" />
-          Créer ma première cuvée
-        </Link>
-      </Button>
-    </div>
-  );
-}

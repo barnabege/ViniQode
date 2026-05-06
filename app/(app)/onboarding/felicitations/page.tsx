@@ -50,27 +50,25 @@ export default async function FelicitationsPage({ searchParams }: PageProps) {
   const filenameBase = `qrcode-${slugify(cuvee.nom)}-${cuvee.millesime ?? ""}`;
 
   return (
-    <div className="mx-auto max-w-2xl text-center">
+    <div className="mx-auto flex max-w-2xl flex-col items-center px-4 pb-12 text-center">
       <ConfettiBurst />
 
       <h1 className="font-serif text-4xl leading-[1.1] text-foreground sm:text-5xl">
         Votre QR code est prêt 🎉
       </h1>
-      <p className="mt-4 text-base leading-relaxed text-muted">
+      <p className="mt-6 text-base leading-relaxed text-muted">
         <strong className="text-foreground">{cuvee.nom}</strong>
-        {cuvee.millesime ? ` · ${cuvee.millesime}` : ""} est désormais
-        publiée. Imprimez votre QR code sur vos étiquettes ou contre-étiquettes.
+        {cuvee.millesime ? ` · ${cuvee.millesime}` : ""} est désormais publiée.
+        Imprimez votre QR code sur vos étiquettes ou contre-étiquettes.
       </p>
 
-      <div className="mt-10 flex justify-center">
-        <div
-          className="rounded-md border border-border bg-background p-4"
-          style={{ width: 240, height: 240 }}
-          dangerouslySetInnerHTML={{ __html: sizeSvg(svg, 200) }}
-        />
-      </div>
+      <div
+        className="mt-12 flex items-center justify-center rounded-2xl bg-white p-6 shadow-md"
+        style={{ width: 320, height: 320 }}
+        dangerouslySetInnerHTML={{ __html: sizeSvg(svg, 272) }}
+      />
 
-      <div className="mx-auto mt-8 max-w-md">
+      <div className="mt-8 w-full max-w-md">
         <DownloadButtons
           svg={svg}
           pngDataUrl={pngDataUrl}
@@ -106,6 +104,6 @@ export default async function FelicitationsPage({ searchParams }: PageProps) {
 function sizeSvg(svg: string, px: number): string {
   return svg.replace(
     /<svg([^>]*)>/i,
-    `<svg$1 width="${px}" height="${px}" style="display:block;margin:0 auto;">`,
+    `<svg$1 width="${px}" height="${px}" style="display:block;">`,
   );
 }
