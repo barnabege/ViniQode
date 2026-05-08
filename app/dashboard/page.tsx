@@ -27,6 +27,7 @@ export default async function DashboardPage() {
     .from("profiles")
     .select("*")
     .eq("id", user.id)
+    .is("deleted_at", null)
     .single<Profile>();
 
   const { data: cuveesData } = await supabase

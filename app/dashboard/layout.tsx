@@ -21,9 +21,19 @@ export default async function DashboardLayout({
   }
 
   const [profileRes, cuveesRes] = await Promise.all([
-    supabase.from("profiles").select("plan").eq("id", user.id).single(),
+    supabase
+      .from("profiles")
+      .select("plan, deleted_at")
+      .eq("id", user.id)
+      .single(),
     supabase.from("cuvees").select("*").eq("user_id", user.id),
   ]);
+
+  // Hard exit pour les comptes soft-deleted (RGPD article 17).
+  if (profileRes.data?.deleted_at) {
+    await supabase.auth.signOut();
+    redirect("/connexion?reason=account_deleted");
+  }
 
   const plan: Plan = (profileRes.data?.plan as Plan | undefined) ?? "starter";
   const cuvees: Cuvee[] = cuveesRes.data ?? [];
