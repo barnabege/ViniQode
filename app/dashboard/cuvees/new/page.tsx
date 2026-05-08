@@ -21,6 +21,7 @@ export default async function NewCuveePage({ searchParams }: PageProps) {
     .from("profiles")
     .select("nom_domaine")
     .eq("id", user.id)
+    .is("deleted_at", null)
     .single<{ nom_domaine: string | null }>();
 
   let existing: Cuvee | null = null;

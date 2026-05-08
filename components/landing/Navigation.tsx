@@ -1,104 +1,51 @@
 // components/landing/Navigation.tsx
-"use client";
+//
+// Server Component : récupère la session côté serveur (sans flash) et
+// délègue le rendu au Client Component qui gère le sticky background sur
+// scroll, le menu mobile burger et le dropdown utilisateur.
+//
+// Coût perf : `getUser()` ajoute ~50ms à chaque pageview de la landing
+// (pas de cache statique). Acceptable en P1 — voir MIGRATION_NOTES pour
+// l'optimisation P2 (cookie HTTP-only signé contenant un état "logged-in").
 
-import * as React from "react";
-import Link from "next/link";
-import { Menu, X } from "lucide-react";
-import { Button } from "@/components/ui/Button";
-import { cn } from "@/lib/utils";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
+import {
+  NavigationClient,
+  type NavigationProfile,
+  type NavigationUser,
+} from "./NavigationClient";
 
-const LINKS = [
-  { href: "#fonctionnalites", label: "Fonctionnalités" },
-  { href: "#tarifs", label: "Tarifs" },
-  { href: "#a-propos", label: "À propos" },
-];
+export async function Navigation() {
+  const supabase = createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-export function Navigation() {
-  const [scrolled, setScrolled] = React.useState(false);
-  const [open, setOpen] = React.useState(false);
+  let profile: NavigationProfile | null = null;
+  let navUser: NavigationUser | null = null;
 
-  React.useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  if (user) {
+    navUser = { id: user.id, email: user.email ?? null };
 
-  return (
-    <header
-      className={cn(
-        "sticky top-0 z-40 w-full transition-colors duration-200",
-        scrolled
-          ? "border-b border-border bg-background/80 backdrop-blur"
-          : "border-b border-transparent bg-transparent",
-      )}
-    >
-      <div className="container-page flex h-16 items-center justify-between lg:h-20">
-        <Link
-          href="/"
-          className="font-serif text-2xl font-bold tracking-tight text-foreground lg:text-3xl"
-        >
-          ViniQode
-        </Link>
+    const { data } = await supabase
+      .from("profiles")
+      .select("id, nom_domaine, logo_url, prenom, nom")
+      .eq("id", user.id)
+      .is("deleted_at", null)
+      .maybeSingle();
 
-        <nav className="hidden items-center gap-8 md:flex">
-          {LINKS.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              className="text-sm text-muted transition-colors hover:text-foreground"
-            >
-              {l.label}
-            </Link>
-          ))}
-        </nav>
+    if (data) {
+      profile = {
+        id: data.id,
+        nom_domaine: data.nom_domaine,
+        logo_url: data.logo_url,
+        prenom: data.prenom,
+        nom: data.nom,
+      };
+    }
+    // Si profile null (compte sans profile, edge case), on affiche quand
+    // même le menu connecté avec fallback sur l'email — décision brief.
+  }
 
-        <div className="hidden items-center gap-3 md:flex">
-          <Link
-            href="/connexion"
-            className="text-sm text-muted transition-colors hover:text-foreground"
-          >
-            Se connecter
-          </Link>
-          <Button asChild size="sm">
-            <Link href="/inscription">Commencer gratuitement</Link>
-          </Button>
-        </div>
-
-        <button
-          type="button"
-          aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-sm text-foreground md:hidden"
-          onClick={() => setOpen((v) => !v)}
-        >
-          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
-      </div>
-
-      {open && (
-        <div className="border-t border-border bg-background md:hidden">
-          <nav className="container-page flex flex-col py-4">
-            {LINKS.map((l) => (
-              <Link
-                key={l.href}
-                href={l.href}
-                className="py-3 text-sm text-foreground"
-                onClick={() => setOpen(false)}
-              >
-                {l.label}
-              </Link>
-            ))}
-            <div className="mt-2 flex flex-col gap-2 border-t border-border pt-4">
-              <Button asChild variant="secondary" size="md" block>
-                <Link href="/connexion">Se connecter</Link>
-              </Button>
-              <Button asChild size="md" block>
-                <Link href="/inscription">Commencer gratuitement</Link>
-              </Button>
-            </div>
-          </nav>
-        </div>
-      )}
-    </header>
-  );
+  return <NavigationClient user={navUser} profile={profile} />;
 }
