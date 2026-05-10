@@ -1,31 +1,67 @@
-// app/elabel/[id]/page.tsx
+// app/elabel/[lang]/[id]/page.tsx
 //
-// Page e-label publique conforme (UE) 2021/2117.
+// Page e-label publique conforme (UE) 2021/2117, traduite dans la
+// langue indiquée par le segment [lang] de l'URL.
 // Contraintes : ultra légère, sans tracking, sans cookies,
 // sans publicité, lisible mobile en < 1 s.
 
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
-import { TYPES_VIN_LABELS } from "./labels";
-import { libelleAllergenes, listeIngredientsLibelle } from "@/lib/ingredients";
-import { formatDateFR, formatNumberFR } from "@/lib/utils";
-import { LanguageSwitcher } from "./LanguageSwitcher";
+import {
+  libelleAllergenesLocalized,
+  listeIngredientsLibelleLocalized,
+  type AllergeneCode,
+} from "@/lib/ingredients";
+import { formatNumberFR } from "@/lib/utils";
+import {
+  SUPPORTED_LOCALES,
+  isLocale,
+  type Locale,
+} from "@/lib/i18n";
+import { getMessages } from "@/messages";
 import type { Cuvee, Profile } from "@/lib/database.types";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 60;
 
-export const metadata: Metadata = {
-  robots: { index: false, follow: false },
-  title: "Information réglementaire (UE) 2021/2117",
-};
-
 interface PageProps {
-  params: { id: string };
+  params: { lang: string; id: string };
+}
+
+export function generateMetadata({ params }: PageProps): Metadata {
+  const lang: Locale = isLocale(params.lang) ? params.lang : "en";
+  const messages = getMessages(lang);
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://viniqode.fr";
+
+  // hreflang : une alternate par locale + x-default sur EN.
+  const languages: Record<string, string> = {};
+  for (const loc of SUPPORTED_LOCALES) {
+    languages[loc] = `${appUrl}/elabel/${loc}/${params.id}`;
+  }
+  languages["x-default"] = `${appUrl}/elabel/en/${params.id}`;
+
+  return {
+    title: messages.elabel.pageTitle,
+    robots: {
+      index: false,
+      follow: false,
+      googleBot: { index: false, follow: false },
+    },
+    alternates: {
+      canonical: `${appUrl}/elabel/${lang}/${params.id}`,
+      languages,
+    },
+  };
 }
 
 export default async function ELabelPage({ params }: PageProps) {
+  if (!isLocale(params.lang)) notFound();
+  const lang: Locale = params.lang;
+  const messages = getMessages(lang);
+  const t = messages.elabel;
+
   const supabase = createSupabaseServerClient();
 
   const { data } = await supabase
@@ -37,7 +73,7 @@ export default async function ELabelPage({ params }: PageProps) {
   if (!data) notFound();
 
   if (data.statut !== "actif") {
-    return <ELabelUnavailable />;
+    return <ELabelUnavailable title={t.unavailable.title} message={t.unavailable.message} />;
   }
 
   const { data: producteur } = await supabase
@@ -46,27 +82,30 @@ export default async function ELabelPage({ params }: PageProps) {
     .eq("id", data.user_id)
     .single<Pick<Profile, "nom_domaine" | "region">>();
 
-  const allergenes = data.allergenes ?? [];
-  const allergenesLibelle = libelleAllergenes(
-    allergenes as Parameters<typeof libelleAllergenes>[0],
-  );
-  const ingredientsLibelle = listeIngredientsLibelle(
+  const allergenes = (data.allergenes ?? []) as AllergeneCode[];
+  const allergenesLibelle = libelleAllergenesLocalized(allergenes, messages);
+  const ingredientsLibelle = listeIngredientsLibelleLocalized(
     (data.ingredients as string[]) ?? [],
+    messages,
   );
-  const typeLabel = data.type_vin ? TYPES_VIN_LABELS[data.type_vin] : "—";
+  const typeLabel = data.type_vin ? messages.typesVin[data.type_vin] : "—";
 
   return (
     <div className="mx-auto min-h-screen max-w-prose px-5 py-6 text-foreground">
       <header className="flex items-center justify-between border-b border-border pb-4">
         <div>
           <p className="font-serif text-sm font-semibold tracking-tight text-muted">
-            ViniQode
+            {t.bannerHeader}
           </p>
           <p className="text-[11px] uppercase tracking-widest text-muted">
-            Information réglementaire — (UE) 2021/2117
+            {t.bannerSubheader}
           </p>
         </div>
-        <LanguageSwitcher />
+        <LanguageSwitcher
+          current={lang}
+          cuveeId={params.id}
+          ariaLabel={t.languageSwitcher.ariaLabel}
+        />
       </header>
 
       <main className="space-y-8 py-6">
@@ -87,20 +126,23 @@ export default async function ELabelPage({ params }: PageProps) {
           )}
           {data.degre_alcool !== null && (
             <p className="mt-3 text-sm text-foreground">
-              Volume : {data.volume_cl ? `${data.volume_cl} cl` : "—"} ·
-              Titre alcoométrique : {formatNumberFR(data.degre_alcool, 1)} %
-              vol.
+              {t.bottle.volumeLabel} :{" "}
+              {data.volume_cl ? `${data.volume_cl} ${t.bottle.volumeUnit}` : "—"} ·{" "}
+              {t.bottle.alcoholLabel} : {formatNumberFR(data.degre_alcool, 1)}{" "}
+              {t.bottle.alcoholUnit}
             </p>
           )}
         </section>
 
         <section>
-          <h2 className="font-serif text-lg text-foreground">Ingrédients</h2>
+          <h2 className="font-serif text-lg text-foreground">
+            {t.headings.ingredients}
+          </h2>
           <p className="mt-2 text-sm leading-relaxed text-foreground">
             {ingredientsLibelle}
             {allergenesLibelle && (
               <>
-                {" — contient des "}
+                {` — ${t.allergens.contains} `}
                 <strong className="font-semibold">
                   {allergenesLibelle.toLowerCase()}
                 </strong>
@@ -112,62 +154,63 @@ export default async function ELabelPage({ params }: PageProps) {
 
         <section>
           <h2 className="font-serif text-lg text-foreground">
-            Déclaration nutritionnelle
+            {t.headings.nutrition}
           </h2>
-          <p className="text-xs text-muted">Pour 100 ml</p>
+          <p className="text-xs text-muted">{t.nutrition.per100ml}</p>
           <table className="mt-3 w-full text-sm">
             <tbody className="divide-y divide-border">
               <NutriRow
-                label="Valeur énergétique"
+                label={t.nutrition.energy}
                 value={`${data.valeur_energetique_kj ?? 0} kJ / ${data.valeur_energetique_kcal ?? 0} kcal`}
                 bold
               />
-              <NutriRow label="Matières grasses" value="0 g" />
+              <NutriRow label={t.nutrition.fat} value="0 g" />
+              <NutriRow label={t.nutrition.saturates} value="0 g" indent />
               <NutriRow
-                label="dont acides gras saturés"
-                value="0 g"
-                indent
-              />
-              <NutriRow
-                label="Glucides"
+                label={t.nutrition.carbs}
                 value={`${formatNumberFR(data.glucides ?? 0, 1)} g`}
               />
               <NutriRow
-                label="dont sucres"
+                label={t.nutrition.sugars}
                 value={`${formatNumberFR(data.sucres_nutritionnels ?? 0, 1)} g`}
                 indent
               />
-              <NutriRow label="Protéines" value="0 g" />
-              <NutriRow label="Sel" value="0 g" />
+              <NutriRow label={t.nutrition.protein} value="0 g" />
+              <NutriRow label={t.nutrition.salt} value="0 g" />
             </tbody>
           </table>
         </section>
       </main>
 
       <footer className="mt-8 space-y-2 border-t border-border pt-5 text-xs leading-relaxed text-muted">
+        <p>{t.footer.disclaimer}</p>
         <p>
-          Cette page est fournie à titre d'information réglementaire
-          conformément au règlement (UE) 2021/2117. Aucune donnée
-          personnelle n'est collectée lors de la consultation de cette page.
+          {t.footer.lastUpdated} :{" "}
+          {new Intl.DateTimeFormat(lang, {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          }).format(new Date(data.updated_at))}
         </p>
-        <p>Dernière mise à jour : {formatDateFR(data.updated_at)}</p>
       </footer>
     </div>
   );
 }
 
-function ELabelUnavailable() {
+function ELabelUnavailable({
+  title,
+  message,
+}: {
+  title: string;
+  message: string;
+}) {
   return (
     <div className="mx-auto flex min-h-screen max-w-prose flex-col items-center justify-center px-5 py-10 text-center">
       <p className="text-[11px] uppercase tracking-widest text-muted">
         ViniQode
       </p>
-      <h1 className="mt-3 font-serif text-2xl text-foreground">
-        Cette cuvée n'est pas encore disponible.
-      </h1>
-      <p className="mt-3 text-sm text-muted">
-        Le producteur finalise les informations légales.
-      </p>
+      <h1 className="mt-3 font-serif text-2xl text-foreground">{title}</h1>
+      <p className="mt-3 text-sm text-muted">{message}</p>
     </div>
   );
 }

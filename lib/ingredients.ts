@@ -159,6 +159,36 @@ export function listeIngredientsLibelle(idsIngredients: string[]): string {
   return noms.join(", ");
 }
 
+// ── Variantes localisées (utilisées par /elabel) ────────────────────────
+// Ces helpers prennent un dictionnaire `Messages` et retournent les libellés
+// dans la langue du consommateur. Pour les pages internes (dashboard, onboarding)
+// les helpers ci-dessus restent en français.
+
+import type { Messages } from "@/messages/types";
+
+export function libelleAllergenesLocalized(
+  codes: AllergeneCode[],
+  messages: Messages,
+): string {
+  if (codes.length === 0) return "";
+  return codes.map((c) => messages.allergenes[c]).join(", ");
+}
+
+export function listeIngredientsLibelleLocalized(
+  idsIngredients: string[],
+  messages: Messages,
+): string {
+  const noms = idsIngredients
+    .map((id) => {
+      const ing = INGREDIENTS.find((i) => i.id === id);
+      if (!ing) return null;
+      const nom = messages.ingredients[id] ?? ing.nom;
+      return ing.codeE ? `${nom} (${ing.codeE})` : nom;
+    })
+    .filter((n): n is string => n !== null);
+  return noms.join(", ");
+}
+
 export const APPELLATIONS_FR: string[] = [
   "Alsace",
   "Bandol",
