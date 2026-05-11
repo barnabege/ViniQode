@@ -30,14 +30,18 @@ const config: Config = {
         muted: "#5C5B57",        // mid-gray warm pour body secondaire
         subtle: "#A3A29C",       // mid-gray clair (placeholder, hint)
         border: "#E5E3DD",       // hairline warm
-        accent: {                // vert conformité — usage rare (puce footer)
-          DEFAULT: "#16A34A",
-          hover: "#15803D",
-        },
-        wine: {                  // accent unique — utilisé comme rature
+        // accent = identité de marque (wine). Toute classe accent-* cascade
+        // automatiquement vers la teinte wine signature. Pour le vert
+        // SÉMANTIQUE (succès, conformité, validation), utiliser `success`
+        // ou les classes Tailwind directes (text-green-600, etc.).
+        accent: {
           DEFAULT: "#5C1A2B",
-          deep: "#5C1A2B",
-          soft: "#5C1A2B",
+          hover: "#4A1422",
+        },
+        wine: {                  // signature de marque — CTA pleins + accents
+          DEFAULT: "#5C1A2B",
+          deep: "#4A1422",       // état hover/pressed des CTAs wine pleins
+          soft: "#5C1A2B",       // alias compat
         },
         success: "#16A34A",      // alias pour compat
         error: "#9F2230",        // wine-shifted, pas un rouge SaaS

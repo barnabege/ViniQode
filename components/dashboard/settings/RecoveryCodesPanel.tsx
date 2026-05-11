@@ -77,7 +77,7 @@ export function RecoveryCodesPanel({ codes }: Props) {
           onClick={onCopy}
         >
           {copied ? (
-            <Check className="h-4 w-4 text-accent" />
+            <Check className="h-4 w-4 text-success" />
           ) : (
             <Copy className="h-4 w-4" />
           )}

@@ -8,7 +8,9 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        success: "bg-accent/10 text-accent",
+        // success = vert SÉMANTIQUE (badge "Conforme", statut OK). Volontairement
+        // découplé du token `accent` qui sert au branding wine.
+        success: "bg-green-50 text-green-700",
         warning: "bg-orange-50 text-orange-700",
         error: "bg-red-50 text-error",
         info: "bg-blue-50 text-blue-700",
