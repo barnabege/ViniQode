@@ -85,8 +85,8 @@ export function NavigationClient({ user, profile }: Props) {
       className={cn(
         "sticky top-0 z-40 w-full transition-colors duration-200",
         scrolled
-          ? "border-b border-border bg-background/80 backdrop-blur"
-          : "border-b border-transparent bg-transparent",
+          ? "border-b border-wine/15 bg-white/90 backdrop-blur-sm"
+          : "border-b border-wine/10 bg-white",
       )}
     >
       <div className="container-page flex h-16 items-center justify-between lg:h-20">

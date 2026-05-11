@@ -27,13 +27,13 @@ export function HeroSection() {
 
   return (
     <section className="relative isolate border-b border-border bg-background">
-      <div className="container-page pt-16 pb-20 sm:pt-20 sm:pb-24 lg:pt-24 lg:pb-32">
+      <div className="container-page pt-16 pb-20 sm:pt-20 sm:pb-24 lg:pt-16 lg:pb-20">
         {/* ── Folio en-tête : Nº — Référence — Établi ────────────────── */}
         <motion.header
           initial={reduce ? "visible" : "hidden"}
           animate="visible"
           variants={container}
-          className="mb-14 flex flex-wrap items-center justify-between gap-y-2 sm:mb-20 lg:mb-24"
+          className="mb-14 flex flex-wrap items-center justify-between gap-y-2 sm:mb-16 lg:mb-14"
         >
           <motion.div
             variants={item}
@@ -85,10 +85,7 @@ export function HeroSection() {
               tracking, accessible dix ans.
             </motion.p>
 
-            <motion.div
-              variants={item}
-              className="mt-10 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-7"
-            >
+            <motion.div variants={item} className="mt-10">
               <Link
                 href="/inscription"
                 className="group inline-flex items-center gap-2 rounded-md bg-foreground px-6 py-3.5 text-sm font-medium text-background transition-colors duration-300 ease-editorial hover:bg-wine focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wine focus-visible:ring-offset-2 focus-visible:ring-offset-background"
@@ -99,22 +96,32 @@ export function HeroSection() {
                   aria-hidden="true"
                 />
               </Link>
-              <span className="flex items-center gap-3 text-xs text-muted">
-                <span aria-hidden="true" className="h-px w-6 bg-border" />
-                Sans carte bancaire · 3 cuvées gratuites
-              </span>
             </motion.div>
           </motion.div>
 
-          {/* Mockup ancré — pas de float, taille modérée */}
+          {/* Mockup ancré — scale-down pour tenir dans le viewport au load */}
           <motion.div
             initial={reduce ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, ease: EASE, delay: 0.25 }}
             className="hidden justify-end lg:col-span-5 lg:flex"
           >
-            <div className="w-full max-w-[260px]">
-              <PhoneAnimation />
+            {/* La chassis a une taille CSS fixe (320×650 à md+). On scale via
+             * transform pour préserver les proportions internes (notch,
+             * scanFrame, e-label) ; le wrapper a la dimension visuelle finale
+             * pour que le layout réserve la bonne hauteur. */}
+            <div
+              style={{ width: 208, height: 440 }}
+              className="flex-shrink-0"
+            >
+              <div
+                style={{
+                  transform: "scale(0.65)",
+                  transformOrigin: "top left",
+                }}
+              >
+                <PhoneAnimation />
+              </div>
             </div>
           </motion.div>
         </div>
