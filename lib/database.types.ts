@@ -34,6 +34,11 @@ export type RecoveryCode = {
   created_at: string;
 };
 export type StatutCuvee = "brouillon" | "actif" | "archive";
+
+/**
+ * @deprecated Utiliser `Couleur` pour le nouveau code.
+ * Conservée pour les données historiques (cf. TECH_DEBT.md).
+ */
 export type TypeVin =
   | "blanc"
   | "rouge"
@@ -41,6 +46,8 @@ export type TypeVin =
   | "effervescent"
   | "liquoreux"
   | "autre";
+
+export type Couleur = "rouge" | "blanc" | "rose" | "effervescent";
 export type TypeProduitCommande = "sticker_qr" | "contre_etiquette" | "pack";
 export type StatutCommande =
   | "en_attente"
@@ -124,8 +131,11 @@ export type Cuvee = {
   id: string;
   user_id: string;
   nom: string;
+  region: string | null;
   appellation: string | null;
   millesime: number | null;
+  couleur: Couleur | null;
+  /** @deprecated cf. TECH_DEBT.md — lire `couleur` en priorité. */
   type_vin: TypeVin | null;
   degre_alcool: number | null;
   volume_cl: number | null;
@@ -134,11 +144,16 @@ export type Cuvee = {
   allergenes: string[];
   valeur_energetique_kj: number | null;
   valeur_energetique_kcal: number | null;
-  glucides: number | null;
-  sucres_nutritionnels: number | null;
+  glucides_g: number | null;
+  sucres_g: number | null;
+  lipides_g: number | null;
+  acides_gras_satures_g: number | null;
+  proteines_g: number | null;
+  sel_g: number | null;
   statut: StatutCuvee;
   qr_code_url: string | null;
   elabel_url: string | null;
+  deleted_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -166,7 +181,12 @@ export type Database = {
       };
       cuvees: {
         Row: Cuvee;
-        Insert: Omit<Cuvee, "id" | "created_at" | "updated_at">;
+        // Seuls user_id et nom sont NOT NULL sans DEFAULT côté DB. Toutes les
+        // autres colonnes ont un DEFAULT ou sont nullable → optionnelles en
+        // INSERT. Cf. supabase/schema.sql + migration 0004.
+        Insert: { user_id: string; nom: string } & Partial<
+          Omit<Cuvee, "id" | "created_at" | "updated_at" | "user_id" | "nom">
+        >;
         Update: Partial<Cuvee>;
         Relationships: [];
       };

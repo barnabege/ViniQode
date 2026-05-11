@@ -16,8 +16,8 @@ export interface ApercuData {
     | "allergenes"
     | "valeur_energetique_kj"
     | "valeur_energetique_kcal"
-    | "glucides"
-    | "sucres_nutritionnels"
+    | "glucides_g"
+    | "sucres_g"
   >;
   profile: Pick<Profile, "nom_domaine" | "region">;
   emailConfirmed: boolean;
@@ -39,7 +39,7 @@ export async function loadApercuAction(cuveeId: string): Promise<ApercuResult> {
     supabase
       .from("cuvees")
       .select(
-        "id, nom, millesime, type_vin, degre_alcool, volume_cl, ingredients, allergenes, valeur_energetique_kj, valeur_energetique_kcal, glucides, sucres_nutritionnels",
+        "id, nom, millesime, type_vin, degre_alcool, volume_cl, ingredients, allergenes, valeur_energetique_kj, valeur_energetique_kcal, glucides_g, sucres_g",
       )
       .eq("id", cuveeId)
       .eq("user_id", user.id)

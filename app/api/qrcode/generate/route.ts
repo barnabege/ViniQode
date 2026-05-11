@@ -30,8 +30,8 @@ export async function POST(request: NextRequest) {
       allergenes,
       valeur_energetique_kj,
       valeur_energetique_kcal,
-      glucides,
-      sucres_nutritionnels,
+      glucides_g,
+      sucres_g,
     } = body;
 
     // 3. Insérer la cuvée dans Supabase et récupérer son ID
@@ -50,8 +50,8 @@ export async function POST(request: NextRequest) {
         allergenes,
         valeur_energetique_kj,
         valeur_energetique_kcal,
-        glucides,
-        sucres_nutritionnels,
+        glucides_g,
+        sucres_g,
         statut: "actif",
         qr_code_url: null,
         elabel_url: null,

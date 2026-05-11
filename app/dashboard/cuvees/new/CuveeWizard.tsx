@@ -10,11 +10,11 @@ import { Checkbox } from "@/components/ui/Checkbox";
 import { StepIndicator } from "@/components/ui/StepIndicator";
 import { NutritionTable } from "@/components/ui/NutritionTable";
 import { PhonePreview } from "@/components/ui/PhonePreview";
-import { QRCodePreview } from "@/components/ui/QRCodePreview";
 import { Badge } from "@/components/ui/Badge";
 import {
   APPELLATIONS_FR,
   INGREDIENTS,
+  REGIONS_VITICOLES,
   detecterAllergenes,
   libelleAllergenes,
   listeIngredientsLibelle,
@@ -22,10 +22,13 @@ import {
   type Ingredient,
 } from "@/lib/ingredients";
 import { calculerNutrition, type NutritionValues } from "@/lib/nutrition";
-import { createSupabaseBrowserClient } from "@/lib/supabase";
-import { generateQrCode, type QrCodeAssets } from "@/lib/qrcode";
-import { slugify } from "@/lib/utils";
-import type { Cuvee, TypeVin } from "@/lib/database.types";
+import { mapTypeVinToCouleur } from "@/lib/cuvees-shared";
+import { COULEURS, VOLUMES } from "@/lib/validations/cuvees";
+import {
+  saveCuveeDraftAction,
+  submitCuveeAction,
+} from "@/app/dashboard/cuvees/_actions";
+import type { Cuvee } from "@/lib/database.types";
 
 const STEPS = [
   { label: "Informations", description: "Identité de la cuvée" },
@@ -34,29 +37,14 @@ const STEPS = [
   { label: "Aperçu", description: "Publication ou brouillon" },
 ];
 
-const TYPES_VIN = [
-  { value: "blanc", label: "Blanc" },
-  { value: "rouge", label: "Rouge" },
-  { value: "rose", label: "Rosé" },
-  { value: "effervescent", label: "Effervescent" },
-  { value: "liquoreux", label: "Liquoreux" },
-  { value: "autre", label: "Autre" },
-] as const;
-
-const VOLUMES = [
-  { value: 37, label: "37,5 cl" },
-  { value: 75, label: "75 cl" },
-  { value: 100, label: "1 L" },
-  { value: 150, label: "1,5 L" },
-] as const;
-
 const MILLESIMES = Array.from({ length: 8 }, (_, i) => 2025 - i);
 
 interface FormState {
   nom: string;
+  region: string;
   appellation: string;
   millesime: string;
-  type_vin: string;
+  couleur: string;
   degre_alcool: string;
   volume_cl: string;
   sucres_residuels: string;
@@ -65,9 +53,10 @@ interface FormState {
 
 const INITIAL: FormState = {
   nom: "",
+  region: "",
   appellation: "",
   millesime: "",
-  type_vin: "",
+  couleur: "",
   degre_alcool: "",
   volume_cl: "",
   sucres_residuels: "0",
@@ -78,11 +67,15 @@ function initialFromCuvee(c: Cuvee): FormState {
   const ings = Array.isArray(c.ingredients)
     ? (c.ingredients as string[])
     : ["raisins"];
+  // Fallback : si couleur est NULL en DB (donnée pré-migration 0004), on
+  // dérive depuis type_vin (DEPRECATED, cf. TECH_DEBT.md).
+  const couleur = c.couleur ?? mapTypeVinToCouleur(c.type_vin) ?? "";
   return {
     nom: c.nom ?? "",
+    region: c.region ?? "",
     appellation: c.appellation ?? "",
     millesime: c.millesime ? String(c.millesime) : "",
-    type_vin: c.type_vin ?? "",
+    couleur,
     degre_alcool: c.degre_alcool != null ? String(c.degre_alcool) : "",
     volume_cl: c.volume_cl ? String(c.volume_cl) : "",
     sucres_residuels:
@@ -91,57 +84,50 @@ function initialFromCuvee(c: Cuvee): FormState {
   };
 }
 
-interface BuildFieldsParams {
+interface BuildPayloadParams {
   form: FormState;
-  allergenes: AllergeneCode[];
   nutrition: NutritionValues;
   includeNutrition: boolean;
 }
 
-function buildFields({
+/**
+ * Sérialise le state du form en payload pour les Server Actions.
+ * Les Server Actions valident via Zod, donc on peut envoyer des strings vides
+ * pour les champs optionnels — Zod les convertit en null.
+ */
+function buildPayload({
   form,
-  allergenes,
   nutrition,
   includeNutrition,
-}: BuildFieldsParams): Record<string, unknown> {
-  const fields: Record<string, unknown> = {
+}: BuildPayloadParams) {
+  return {
     nom: form.nom,
+    region: form.region,
+    appellation: form.appellation,
+    millesime: form.millesime,
+    couleur: form.couleur,
+    degre_alcool: form.degre_alcool,
+    volume_cl: form.volume_cl,
+    sucres_residuels: form.sucres_residuels,
     ingredients: form.ingredients,
-    allergenes,
+    allergenes: [], // recalculé serveur via detecterAllergenes
+    valeur_energetique_kj: includeNutrition ? nutrition.energieKj : null,
+    valeur_energetique_kcal: includeNutrition ? nutrition.energieKcal : null,
+    glucides_g: includeNutrition ? nutrition.glucides : null,
+    sucres_g: includeNutrition ? nutrition.sucres : null,
+    lipides_g: includeNutrition ? nutrition.matieresGrasses : null,
+    acides_gras_satures_g: includeNutrition ? nutrition.acidesGrasSatures : null,
+    proteines_g: includeNutrition ? nutrition.proteines : null,
+    sel_g: includeNutrition ? nutrition.sel : null,
   };
-  if (form.appellation) fields.appellation = form.appellation;
-  if (form.millesime) fields.millesime = parseInt(form.millesime, 10);
-  if (form.type_vin) fields.type_vin = form.type_vin;
-  if (form.degre_alcool && !Number.isNaN(parseFloat(form.degre_alcool))) {
-    fields.degre_alcool = parseFloat(form.degre_alcool);
-  }
-  if (form.volume_cl) fields.volume_cl = parseInt(form.volume_cl, 10);
-  if (
-    form.sucres_residuels !== "" &&
-    !Number.isNaN(parseFloat(form.sucres_residuels))
-  ) {
-    fields.sucres_residuels = parseFloat(form.sucres_residuels);
-  }
-  if (includeNutrition && form.degre_alcool) {
-    fields.valeur_energetique_kj = nutrition.energieKj;
-    fields.valeur_energetique_kcal = nutrition.energieKcal;
-    fields.glucides = nutrition.glucides;
-    fields.sucres_nutritionnels = nutrition.sucres;
-  }
-  return fields;
 }
 
 interface CuveeWizardProps {
-  userId: string;
   domaine: string;
   existingCuvee?: Cuvee | null;
 }
 
-export function CuveeWizard({
-  userId,
-  domaine,
-  existingCuvee,
-}: CuveeWizardProps) {
+export function CuveeWizard({ domaine, existingCuvee }: CuveeWizardProps) {
   const router = useRouter();
 
   const [savedCuveeId, setSavedCuveeId] = React.useState<string | null>(
@@ -155,12 +141,10 @@ export function CuveeWizard({
   const [form, setForm] = React.useState<FormState>(
     existingCuvee ? initialFromCuvee(existingCuvee) : INITIAL,
   );
-  const [qrAssets, setQrAssets] = React.useState<QrCodeAssets | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [draftMsg, setDraftMsg] = React.useState<string | null>(null);
   const [draftMsgKind, setDraftMsgKind] = React.useState<"ok" | "err">("ok");
-  const [submitDone, setSubmitDone] = React.useState(false);
   const [publishOnSubmit, setPublishOnSubmit] = React.useState<boolean>(
     existingCuvee?.statut === "actif",
   );
@@ -168,13 +152,12 @@ export function CuveeWizard({
 
   const isEditMode = Boolean(existingCuvee || savedCuveeId);
 
-  // Refs pour le handler beforeunload (registered once, lit toujours la dernière valeur).
+  // Refs pour le handler beforeunload — registered once, lit les dernières valeurs.
   const dirtyRef = React.useRef(false);
   const formRef = React.useRef(form);
   const savedCuveeIdRef = React.useRef(savedCuveeId);
-  const allergenesRef = React.useRef<AllergeneCode[]>([]);
   const nutritionRef = React.useRef<NutritionValues | null>(null);
-  const submitDoneRef = React.useRef(submitDone);
+  const submitDoneRef = React.useRef(false);
 
   React.useEffect(() => {
     formRef.current = form;
@@ -182,9 +165,6 @@ export function CuveeWizard({
   React.useEffect(() => {
     savedCuveeIdRef.current = savedCuveeId;
   }, [savedCuveeId]);
-  React.useEffect(() => {
-    submitDoneRef.current = submitDone;
-  }, [submitDone]);
 
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     dirtyRef.current = true;
@@ -216,33 +196,39 @@ export function CuveeWizard({
   );
 
   React.useEffect(() => {
-    allergenesRef.current = allergenes;
     nutritionRef.current = nutrition;
-  }, [allergenes, nutrition]);
+  }, [nutrition]);
 
-  // Auto-save silencieux à la fermeture de la page.
+  // Auto-save silencieux à la fermeture de la page (sendBeacon n'est pas
+  // compatible avec les Server Actions — on garde l'API route dédiée).
   React.useEffect(() => {
     const handler = () => {
       if (submitDoneRef.current) return;
       if (!dirtyRef.current) return;
       const f = formRef.current;
       if (!f.nom.trim()) return;
-      const fields = buildFields({
-        form: f,
-        allergenes: allergenesRef.current,
-        nutrition: nutritionRef.current ?? {
-          energieKj: 0,
-          energieKcal: 0,
-          matieresGrasses: 0,
-          acidesGrasSatures: 0,
-          glucides: 0,
-          sucres: 0,
-          proteines: 0,
-          sel: 0,
-          source: "table",
-        },
-        includeNutrition: Boolean(f.degre_alcool),
-      });
+      const nut = nutritionRef.current;
+      const fields = {
+        nom: f.nom,
+        region: f.region || null,
+        appellation: f.appellation || null,
+        couleur: f.couleur || null,
+        millesime: f.millesime ? parseInt(f.millesime, 10) : null,
+        degre_alcool: f.degre_alcool ? parseFloat(f.degre_alcool) : null,
+        volume_cl: f.volume_cl ? parseInt(f.volume_cl, 10) : null,
+        sucres_residuels: f.sucres_residuels
+          ? parseFloat(f.sucres_residuels)
+          : null,
+        ingredients: f.ingredients,
+        valeur_energetique_kj: nut?.energieKj ?? null,
+        valeur_energetique_kcal: nut?.energieKcal ?? null,
+        glucides_g: nut?.glucides ?? null,
+        sucres_g: nut?.sucres ?? null,
+        lipides_g: nut?.matieresGrasses ?? null,
+        acides_gras_satures_g: nut?.acidesGrasSatures ?? null,
+        proteines_g: nut?.proteines ?? null,
+        sel_g: nut?.sel ?? null,
+      };
       const payload = JSON.stringify({
         id: savedCuveeIdRef.current,
         fields,
@@ -266,7 +252,7 @@ export function CuveeWizard({
         form.nom &&
           form.appellation &&
           form.millesime &&
-          form.type_vin &&
+          form.couleur &&
           form.degre_alcool &&
           form.volume_cl,
       );
@@ -292,131 +278,75 @@ export function CuveeWizard({
     }
     setSubmitting(true);
     setError(null);
-    try {
-      const supabase = createSupabaseBrowserClient();
-      const fields = buildFields({
-        form,
-        allergenes,
-        nutrition,
-        includeNutrition: Boolean(form.degre_alcool),
-      });
 
-      if (savedCuveeId) {
-        // UPDATE en préservant le statut existant.
-        const { error: updateError } = await supabase
-          .from("cuvees")
-          .update(fields as never)
-          .eq("id", savedCuveeId);
-        if (updateError) throw updateError;
-        dirtyRef.current = false;
-        flashDraftMsg(
-          currentStatut === "actif"
-            ? "Modifications enregistrées."
-            : "Brouillon sauvegardé.",
-          "ok",
-        );
-        return { ok: true, id: savedCuveeId };
-      }
+    const payload = buildPayload({
+      form,
+      nutrition,
+      includeNutrition: Boolean(form.degre_alcool),
+    });
 
-      const { data, error: insertError } = await supabase
-        .from("cuvees")
-        .insert({
-          user_id: userId,
-          ...(fields as Record<string, unknown>),
-          statut: "brouillon",
-        } as never)
-        .select("id")
-        .single<{ id: string }>();
-      if (insertError) throw insertError;
-      setSavedCuveeId(data.id);
-      setCurrentStatut("brouillon");
-      dirtyRef.current = false;
-      flashDraftMsg("Brouillon sauvegardé.", "ok");
-      return { ok: true, id: data.id };
-    } catch (err) {
-      flashDraftMsg(
-        err instanceof Error
-          ? err.message
-          : "Sauvegarde impossible. Réessayez.",
-        "err",
-      );
+    const result = await saveCuveeDraftAction(
+      payload,
+      savedCuveeId ?? undefined,
+    );
+    setSubmitting(false);
+
+    if (!result.ok) {
+      flashDraftMsg(result.error, "err");
       return { ok: false };
-    } finally {
-      setSubmitting(false);
     }
+
+    if (!savedCuveeId) {
+      setSavedCuveeId(result.data.id);
+      setCurrentStatut("brouillon");
+    }
+    dirtyRef.current = false;
+    flashDraftMsg(
+      currentStatut === "actif"
+        ? "Modifications enregistrées."
+        : "Brouillon sauvegardé.",
+      "ok",
+    );
+    return { ok: true, id: result.data.id };
   }
 
-  // Soumission finale depuis l'étape 4 — UPDATE/INSERT avec statut explicite,
-  // génère le QR si on publie une cuvée qui n'avait pas encore d'e-label.
-  const onSubmitFinal = async () => {
+  async function onSubmitFinal() {
     setError(null);
     setSubmitting(true);
-    try {
-      const supabase = createSupabaseBrowserClient();
-      const targetStatut: "actif" | "brouillon" = publishOnSubmit
-        ? "actif"
-        : "brouillon";
-      const fields = {
-        ...buildFields({
-          form,
-          allergenes,
-          nutrition,
-          includeNutrition: true,
-        }),
-        statut: targetStatut,
-      };
 
-      let cuveeId: string;
+    const payload = buildPayload({
+      form,
+      nutrition,
+      includeNutrition: true,
+    });
 
-      if (savedCuveeId) {
-        const { error: updateError } = await supabase
-          .from("cuvees")
-          .update(fields as never)
-          .eq("id", savedCuveeId);
-        if (updateError) throw updateError;
-        cuveeId = savedCuveeId;
-      } else {
-        const { data: created, error: insertError } = await supabase
-          .from("cuvees")
-          .insert({
-            user_id: userId,
-            ...fields,
-            qr_code_url: null,
-            elabel_url: null,
-          } as never)
-          .select("id")
-          .single<{ id: string }>();
-        if (insertError) throw insertError;
-        cuveeId = created.id;
-        setSavedCuveeId(cuveeId);
-      }
+    const result = await submitCuveeAction(payload, {
+      existingId: savedCuveeId ?? undefined,
+      publish: publishOnSubmit,
+      origin: window.location.origin,
+    });
 
-      setCurrentStatut(targetStatut);
-
-      if (targetStatut === "actif" && !existingCuvee?.elabel_url) {
-        const elabelUrl = `${window.location.origin}/elabel/${cuveeId}`;
-        await supabase
-          .from("cuvees")
-          .update({ elabel_url: elabelUrl })
-          .eq("id", cuveeId);
-      }
-
-      dirtyRef.current = false;
-
-      if (targetStatut === "actif") {
-        router.push(`/onboarding/felicitations?cuvee_id=${cuveeId}`);
-      } else {
-        router.push("/dashboard");
-      }
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Une erreur est survenue. Veuillez réessayer ou contacter notre support.",
-      );
+    if (!result.ok) {
+      setError(result.error);
       setSubmitting(false);
+      return;
     }
-  };
+
+    submitDoneRef.current = true;
+    dirtyRef.current = false;
+
+    const targetStatut: "actif" | "brouillon" = publishOnSubmit
+      ? "actif"
+      : "brouillon";
+    setCurrentStatut(targetStatut);
+    if (!savedCuveeId) setSavedCuveeId(result.data.id);
+
+    if (targetStatut === "actif") {
+      router.push(`/onboarding/felicitations?cuvee_id=${result.data.id}`);
+    } else {
+      router.push("/dashboard");
+    }
+  }
 
   function onCancelClick() {
     if (!dirtyRef.current && !submitting) {
@@ -437,16 +367,6 @@ export function CuveeWizard({
     setShowCancelDialog(false);
     router.push("/dashboard");
   }
-
-  const finalButtonLabel = (() => {
-    if (existingCuvee) return "Enregistrer les modifications";
-    return publishOnSubmit ? "Publier" : "Sauvegarder en brouillon";
-  })();
-
-  const finalButtonLoadingLabel = (() => {
-    if (existingCuvee) return "Enregistrement…";
-    return publishOnSubmit ? "Publication…" : "Sauvegarde…";
-  })();
 
   const draftButtonLabel = isEditMode
     ? "Sauvegarder les modifications"
@@ -505,44 +425,42 @@ export function CuveeWizard({
         </p>
       )}
 
-      {!submitDone && (
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={onCancelClick}
-              disabled={submitting}
-            >
-              Annuler
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={goPrev}
-              disabled={step === 0 || submitting}
-            >
-              <ArrowLeft className="h-4 w-4" /> Précédent
-            </Button>
-          </div>
-          <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-            <button
-              type="button"
-              onClick={() => void saveDraft()}
-              disabled={submitting}
-              className="inline-flex items-center gap-2 rounded-sm border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-60"
-            >
-              <Save className="h-4 w-4" />
-              {draftButtonLabel}
-            </button>
-            {step < STEPS.length - 1 && (
-              <Button type="button" onClick={goNext} disabled={!canGoNext}>
-                Étape suivante <ArrowRight className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={onCancelClick}
+            disabled={submitting}
+          >
+            Annuler
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={goPrev}
+            disabled={step === 0 || submitting}
+          >
+            <ArrowLeft className="h-4 w-4" /> Précédent
+          </Button>
         </div>
-      )}
+        <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+          <button
+            type="button"
+            onClick={() => void saveDraft()}
+            disabled={submitting}
+            className="inline-flex items-center gap-2 rounded-sm border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-60"
+          >
+            <Save className="h-4 w-4" />
+            {draftButtonLabel}
+          </button>
+          {step < STEPS.length - 1 && (
+            <Button type="button" onClick={goNext} disabled={!canGoNext}>
+              Étape suivante <ArrowRight className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      </div>
 
       {showCancelDialog && (
         <CancelDialog
@@ -647,6 +565,20 @@ function Step1({
       </Field>
 
       <div className="grid gap-5 sm:grid-cols-2">
+        <Field label="Région" htmlFor="region">
+          <Select
+            id="region"
+            value={form.region}
+            onChange={(e) => update("region", e.target.value)}
+          >
+            <option value="">Choisir…</option>
+            {REGIONS_VITICOLES.map((r) => (
+              <option key={r} value={r}>
+                {r}
+              </option>
+            ))}
+          </Select>
+        </Field>
         <Field label="Appellation" htmlFor="appellation" required>
           <Select
             id="appellation"
@@ -662,6 +594,9 @@ function Step1({
             ))}
           </Select>
         </Field>
+      </div>
+
+      <div className="grid gap-5 sm:grid-cols-2">
         <Field label="Millésime" htmlFor="millesime" required>
           <Select
             id="millesime"
@@ -677,24 +612,24 @@ function Step1({
             ))}
           </Select>
         </Field>
-      </div>
-
-      <div className="grid gap-5 sm:grid-cols-2">
-        <Field label="Type de vin" htmlFor="type_vin" required>
+        <Field label="Couleur" htmlFor="couleur" required>
           <Select
-            id="type_vin"
-            value={form.type_vin}
-            onChange={(e) => update("type_vin", e.target.value)}
+            id="couleur"
+            value={form.couleur}
+            onChange={(e) => update("couleur", e.target.value)}
             required
           >
             <option value="">Choisir…</option>
-            {TYPES_VIN.map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
+            {COULEURS.map((c) => (
+              <option key={c.value} value={c.value}>
+                {c.label}
               </option>
             ))}
           </Select>
         </Field>
+      </div>
+
+      <div className="grid gap-5 sm:grid-cols-2">
         <Field
           label="Degré alcoolique (%)"
           htmlFor="degre_alcool"
@@ -712,9 +647,6 @@ function Step1({
             required
           />
         </Field>
-      </div>
-
-      <div className="grid gap-5 sm:grid-cols-2">
         <Field label="Volume de la bouteille" htmlFor="volume_cl" required>
           <Select
             id="volume_cl"
@@ -730,21 +662,22 @@ function Step1({
             ))}
           </Select>
         </Field>
-        <Field
-          label="Sucres résiduels (g/L)"
-          htmlFor="sucres_residuels"
-          hint="0 pour un vin sec"
-        >
-          <Input
-            id="sucres_residuels"
-            type="number"
-            min="0"
-            step="0.1"
-            value={form.sucres_residuels}
-            onChange={(e) => update("sucres_residuels", e.target.value)}
-          />
-        </Field>
       </div>
+
+      <Field
+        label="Sucres résiduels (g/L)"
+        htmlFor="sucres_residuels"
+        hint="0 pour un vin sec"
+      >
+        <Input
+          id="sucres_residuels"
+          type="number"
+          min="0"
+          step="0.1"
+          value={form.sucres_residuels}
+          onChange={(e) => update("sucres_residuels", e.target.value)}
+        />
+      </Field>
     </div>
   );
 }
@@ -940,7 +873,6 @@ function Step4({
   setPublishOnSubmit: (v: boolean) => void;
   onSubmitFinal: () => void;
 }) {
-  // Cas B : édition d'une cuvée actuellement publiée. Cas A sinon.
   const isCasB = isEdit && currentStatut === "actif";
 
   const checkboxLabel = isCasB
@@ -948,10 +880,9 @@ function Step4({
     : "Publier cette cuvée maintenant";
 
   const checkboxDescription = isCasB
-    ? "Décocher pour la dépublier. Le QR code restera valide mais la page e-label affichera « Cuvée non disponible »."
+    ? "Décocher pour la dépublier. Le QR code restera valide mais la page e-label affichera « Cuvée non disponible »."
     : "Le QR code sera actif et la page e-label accessible aux consommateurs. Vous pourrez modifier ou dépublier cette cuvée à tout moment.";
 
-  // Couleur + libellé du bouton final selon le cas.
   const buttonLabel = (() => {
     if (isCasB) {
       return publishOnSubmit
@@ -1077,8 +1008,8 @@ function ELabelPreviewContent({
   ingredientsLibelle: string;
   domaine: string;
 }) {
-  const typeLabel =
-    TYPES_VIN.find((t) => t.value === form.type_vin)?.label ?? "—";
+  const couleurLabel =
+    COULEURS.find((c) => c.value === form.couleur)?.label ?? "—";
 
   return (
     <div className="space-y-4">
@@ -1091,7 +1022,7 @@ function ELabelPreviewContent({
         </p>
         <p className="text-xs text-muted">
           {form.appellation || "Appellation"} · {form.millesime || "—"} ·{" "}
-          {typeLabel}
+          {couleurLabel}
         </p>
         <p className="text-xs text-muted">{domaine}</p>
       </div>

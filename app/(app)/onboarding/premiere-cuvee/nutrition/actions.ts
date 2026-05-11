@@ -64,8 +64,8 @@ export async function saveNutritionAction(
     .update({
       valeur_energetique_kj: Math.round(values.energie_kj),
       valeur_energetique_kcal: Math.round(values.energie_kcal),
-      glucides: Number(values.glucides_g.toFixed(1)),
-      sucres_nutritionnels: Number(values.sucres_g.toFixed(1)),
+      glucides_g: Number(values.glucides_g.toFixed(1)),
+      sucres_g: Number(values.sucres_g.toFixed(1)),
     })
     .eq("id", cuveeId)
     .eq("user_id", user.id);

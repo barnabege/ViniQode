@@ -10,9 +10,10 @@ import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 const ALLOWED_FIELDS = new Set([
   "nom",
+  "region",
   "appellation",
   "millesime",
-  "type_vin",
+  "couleur",
   "degre_alcool",
   "volume_cl",
   "sucres_residuels",
@@ -20,8 +21,12 @@ const ALLOWED_FIELDS = new Set([
   "allergenes",
   "valeur_energetique_kj",
   "valeur_energetique_kcal",
-  "glucides",
-  "sucres_nutritionnels",
+  "glucides_g",
+  "sucres_g",
+  "lipides_g",
+  "acides_gras_satures_g",
+  "proteines_g",
+  "sel_g",
 ]);
 
 interface DraftPayload {
@@ -56,11 +61,14 @@ export async function POST(request: Request) {
 
   if (payload.id) {
     // UPDATE silencieux — ne touche pas le statut existant.
+    // Filtre `deleted_at IS NULL` : on ne ressuscite jamais une cuvée
+    // soft-deletée par un autosave de page restée ouverte.
     const { error } = await supabase
       .from("cuvees")
       .update(fields as never)
       .eq("id", payload.id)
-      .eq("user_id", user.id);
+      .eq("user_id", user.id)
+      .is("deleted_at", null);
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
