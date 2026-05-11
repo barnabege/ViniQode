@@ -57,45 +57,52 @@ export function ParametresShell({
 }: ParametresShellProps) {
   return (
     <>
-      <Tabs defaultValue="domaine" className="space-y-6">
-        <TabsList ariaLabel="Sections des paramètres">
-          {TABS.map(({ value, label, icon: Icon }) => (
-            <TabsTrigger key={value} value={value} label={label}>
-              <Icon className="h-4 w-4" />
-              <span>{label}</span>
-            </TabsTrigger>
-          ))}
-        </TabsList>
+      <Tabs defaultValue="domaine">
+        <div className="border-b border-border bg-background px-6 sm:px-10">
+          <TabsList
+            ariaLabel="Sections des paramètres"
+            className="border-b-0"
+          >
+            {TABS.map(({ value, label, icon: Icon }) => (
+              <TabsTrigger key={value} value={value} label={label}>
+                <Icon className="h-4 w-4" />
+                <span>{label}</span>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
 
-        <TabsContent value="domaine">
-          <SectionDomaine profile={profile} userId={userId} />
-        </TabsContent>
-        <TabsContent value="compte">
-          <SectionCompte profile={profile} email={email} userId={userId} />
-        </TabsContent>
-        <TabsContent value="facturation">
-          <SectionFacturation profile={profile} userId={userId} />
-        </TabsContent>
-        <TabsContent value="preferences">
-          <SectionPreferences profile={profile} userId={userId} />
-        </TabsContent>
-        <TabsContent value="notifications">
-          <SectionNotifications profile={profile} userId={userId} />
-        </TabsContent>
-        <TabsContent value="personnalisation">
-          <SectionPersonnalisation profile={profile} userId={userId} />
-        </TabsContent>
-        <TabsContent value="securite">
-          <SectionSecurite
-            email={email}
-            pendingNewEmail={pendingNewEmail}
-            sessions={sessions}
-            currentSessionId={currentSessionId}
-            mfaEnrolled={mfaEnrolled}
-            initialAuditLogs={initialAuditLogs}
-            initialAuditHasMore={initialAuditHasMore}
-          />
-        </TabsContent>
+        <div className="mx-auto w-full max-w-4xl px-6 py-8 sm:px-10 sm:py-12">
+          <TabsContent value="domaine">
+            <SectionDomaine profile={profile} userId={userId} />
+          </TabsContent>
+          <TabsContent value="compte">
+            <SectionCompte profile={profile} email={email} userId={userId} />
+          </TabsContent>
+          <TabsContent value="facturation">
+            <SectionFacturation profile={profile} userId={userId} />
+          </TabsContent>
+          <TabsContent value="preferences">
+            <SectionPreferences profile={profile} userId={userId} />
+          </TabsContent>
+          <TabsContent value="notifications">
+            <SectionNotifications profile={profile} userId={userId} />
+          </TabsContent>
+          <TabsContent value="personnalisation">
+            <SectionPersonnalisation profile={profile} userId={userId} />
+          </TabsContent>
+          <TabsContent value="securite">
+            <SectionSecurite
+              email={email}
+              pendingNewEmail={pendingNewEmail}
+              sessions={sessions}
+              currentSessionId={currentSessionId}
+              mfaEnrolled={mfaEnrolled}
+              initialAuditLogs={initialAuditLogs}
+              initialAuditHasMore={initialAuditHasMore}
+            />
+          </TabsContent>
+        </div>
       </Tabs>
 
       <Toaster

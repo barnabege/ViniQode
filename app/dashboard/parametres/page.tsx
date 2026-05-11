@@ -60,7 +60,7 @@ export default async function ParametresPage() {
 
   return (
     <main className="flex-1">
-      <header className="border-b border-border bg-background px-6 py-7 sm:px-10 sm:py-8">
+      <header className="bg-background px-6 py-7 sm:px-10 sm:py-8">
         <h1 className="font-serif text-3xl leading-tight text-foreground sm:text-4xl">
           Paramètres
         </h1>
@@ -70,19 +70,17 @@ export default async function ParametresPage() {
         </p>
       </header>
 
-      <div className="mx-auto w-full max-w-4xl px-6 py-8 sm:px-10 sm:py-12">
-        <ParametresShell
-          profile={profile}
-          email={user.email ?? ""}
-          userId={user.id}
-          pendingNewEmail={pendingNewEmail}
-          sessions={sessionsRes}
-          currentSessionId={currentSessionId}
-          mfaEnrolled={mfaEnrolled}
-          initialAuditLogs={initialAuditLogs}
-          initialAuditHasMore={initialAuditHasMore}
-        />
-      </div>
+      <ParametresShell
+        profile={profile}
+        email={user.email ?? ""}
+        userId={user.id}
+        pendingNewEmail={pendingNewEmail}
+        sessions={sessionsRes}
+        currentSessionId={currentSessionId}
+        mfaEnrolled={mfaEnrolled}
+        initialAuditLogs={initialAuditLogs}
+        initialAuditHasMore={initialAuditHasMore}
+      />
     </main>
   );
 }
