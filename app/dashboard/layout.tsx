@@ -1,4 +1,5 @@
 // app/dashboard/layout.tsx
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Sidebar, MobileBottomNav } from "@/components/dashboard/Sidebar";
 import { AlertBanner } from "@/components/AlertBanner";
@@ -52,6 +53,28 @@ export default async function DashboardLayout({
           nbProblemes={resultat.cuvees_problematiques.length}
         />
         {children}
+        <footer className="mt-16 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 border-t border-border/60 px-6 pb-8 pt-6 text-xs text-muted">
+          <span>ViniQode © {new Date().getFullYear()}</span>
+          <span aria-hidden>·</span>
+          <Link href="/cgv" className="hover:text-foreground">
+            CGV
+          </Link>
+          <span aria-hidden>·</span>
+          <Link href="/confidentialite" className="hover:text-foreground">
+            Confidentialité
+          </Link>
+          <span aria-hidden>·</span>
+          <Link href="/mentions-legales" className="hover:text-foreground">
+            Mentions légales
+          </Link>
+          <span aria-hidden>·</span>
+          <Link
+            href="mailto:support@viniqode.fr"
+            className="hover:text-foreground"
+          >
+            Contact
+          </Link>
+        </footer>
       </div>
       <MobileBottomNav />
     </div>

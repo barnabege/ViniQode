@@ -165,7 +165,13 @@ export function SignupForm() {
 
       <FormError message={serverError} />
 
-      <Button type="submit" size="lg" block disabled={isSubmitting}>
+      <Button
+        type="submit"
+        size="lg"
+        block
+        disabled={isSubmitting || !rgpd}
+        aria-disabled={isSubmitting || !rgpd}
+      >
         {isSubmitting ? "Création en cours…" : "Créer mon compte"}
       </Button>
 

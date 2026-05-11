@@ -1,4 +1,6 @@
 // app/page.tsx
+import { redirect } from "next/navigation";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { Navigation } from "@/components/landing/Navigation";
 import { Footer } from "@/components/landing/Footer";
 import { ScrollResetOnReload } from "@/components/landing/ScrollResetOnReload";
@@ -12,7 +14,13 @@ import { PricingSection } from "@/components/landing/PricingSection";
 import { FaqSection } from "@/components/landing/FaqSection";
 import { CtaFinalSection } from "@/components/landing/CtaFinalSection";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const supabase = createSupabaseServerClient();
+  const { data } = await supabase.auth.getUser();
+  if (data.user) {
+    redirect("/dashboard");
+  }
+
   return (
     <>
       <Navigation />
