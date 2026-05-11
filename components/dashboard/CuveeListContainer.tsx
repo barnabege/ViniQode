@@ -23,11 +23,13 @@ import type { Cuvee } from "@/lib/database.types";
 export interface CuveeListContainerProps {
   cuvees: Cuvee[];
   emailConfirmedAt: string | null;
+  title?: string | null;
 }
 
 export function CuveeListContainer({
   cuvees,
   emailConfirmedAt,
+  title = "Mes cuvées",
 }: CuveeListContainerProps) {
   const router = useRouter();
   const [selectionMode, setSelectionMode] = React.useState(false);
@@ -86,11 +88,16 @@ export function CuveeListContainer({
     router.refresh();
   }
 
+  const showHeaderRow = Boolean(title) || cuvees.length > 0;
+
   return (
     <section className="mt-10">
+      {showHeaderRow && (
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <h2 className="font-serif text-xl text-foreground">Mes cuvées</h2>
+          {title && (
+            <h2 className="font-serif text-xl text-foreground">{title}</h2>
+          )}
           {cuvees.length > 0 && (
             <Badge variant="neutral">
               {cuvees.length} cuvée{cuvees.length > 1 ? "s" : ""}
@@ -108,6 +115,7 @@ export function CuveeListContainer({
             </Button>
           ))}
       </div>
+      )}
 
       {flashMsg && (
         <p

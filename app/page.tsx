@@ -27,8 +27,29 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/Accordion";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { ConnectedHome } from "./_components/connected-home";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const supabase = createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    return (
+      <>
+        <Navigation />
+        <ConnectedHome user={user} />
+        <Footer />
+      </>
+    );
+  }
+
+  return <MarketingHome />;
+}
+
+function MarketingHome() {
   return (
     <>
       <Navigation />
