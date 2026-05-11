@@ -8,7 +8,6 @@ import { ComparisonSection } from "@/components/landing/ComparisonSection";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
-import { PullQuoteSection } from "@/components/landing/PullQuoteSection";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { FaqSection } from "@/components/landing/FaqSection";
 import { CtaFinalSection } from "@/components/landing/CtaFinalSection";
@@ -25,7 +24,6 @@ export default function HomePage() {
         <HowItWorksSection />
         <FeaturesSection />
         <TestimonialsSection />
-        <PullQuoteSection />
         <PricingSection />
         <FaqSection />
         <CtaFinalSection />

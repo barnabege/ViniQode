@@ -114,7 +114,7 @@ export function FeaturesSection() {
               delay={0.1 + gi * 0.1}
               className="lg:border-l lg:border-border lg:first:border-l-0 lg:pl-10 lg:first:pl-0"
             >
-              <h3 className="text-[11px] font-medium uppercase tracking-[0.25em] text-foreground">
+              <h3 className="text-[11px] font-medium uppercase tracking-[0.25em] text-wine">
                 {group.title}
               </h3>
               <p className="mt-2 max-w-[28ch] text-sm leading-relaxed text-muted">
