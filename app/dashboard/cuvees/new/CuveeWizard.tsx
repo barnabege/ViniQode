@@ -292,6 +292,11 @@ export function CuveeWizard({ domaine, existingCuvee }: CuveeWizardProps) {
     setSubmitting(false);
 
     if (!result.ok) {
+      if (result.error.startsWith("QUOTA_EXCEEDED:")) {
+        flashDraftMsg(result.error.replace("QUOTA_EXCEEDED:", ""), "err");
+        router.push("/dashboard/parametres/abonnement");
+        return { ok: false };
+      }
       flashDraftMsg(result.error, "err");
       return { ok: false };
     }
@@ -327,6 +332,12 @@ export function CuveeWizard({ domaine, existingCuvee }: CuveeWizardProps) {
     });
 
     if (!result.ok) {
+      if (result.error.startsWith("QUOTA_EXCEEDED:")) {
+        setError(result.error.replace("QUOTA_EXCEEDED:", ""));
+        setSubmitting(false);
+        router.push("/dashboard/parametres/abonnement");
+        return;
+      }
       setError(result.error);
       setSubmitting(false);
       return;

@@ -14,6 +14,12 @@ import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { detecterAllergenes } from "@/lib/ingredients";
 import {
+  canCreateCuvee,
+  getCuveeQuota,
+  getUserPlanFromProfile,
+} from "@/lib/plans";
+import type { Plan } from "@/lib/database.types";
+import {
   cuveeDraftSchema,
   cuveePublishSchema,
   type CuveeDraftInput,
@@ -53,6 +59,43 @@ async function getAuthenticatedUser() {
   return { supabase, user };
 }
 
+/**
+ * Vérifie côté serveur que l'utilisateur peut créer une nouvelle cuvée.
+ * Compte toutes les cuvées non soft-deletées (tous statuts confondus).
+ * Renvoie un message d'erreur préfixé QUOTA_EXCEEDED: si la limite est
+ * atteinte — le préfixe permet au client (Wizard) de réagir spécifiquement.
+ */
+async function checkCuveeQuotaServerSide(
+  supabase: ReturnType<typeof createSupabaseServerClient>,
+  userId: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const [profileRes, countRes] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("plan")
+      .eq("id", userId)
+      .single<{ plan: Plan | null }>(),
+    supabase
+      .from("cuvees")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .is("deleted_at", null),
+  ]);
+
+  const plan = getUserPlanFromProfile(profileRes.data);
+  const used = countRes.count ?? 0;
+  if (!canCreateCuvee(plan, used)) {
+    const q = getCuveeQuota(plan, used);
+    return {
+      ok: false,
+      error: `QUOTA_EXCEEDED:Limite de ${q.limit} cuvée${
+        q.limit > 1 ? "s" : ""
+      } atteinte pour le plan ${q.planLabel}. Passez à Essentiel pour des cuvées illimitées.`,
+    };
+  }
+  return { ok: true };
+}
+
 // ──────────────────────────────────────────────────────────────────────────
 // saveCuveeDraftAction — sauvegarde silencieuse (préserve statut existant)
 // ──────────────────────────────────────────────────────────────────────────
@@ -86,6 +129,9 @@ export async function saveCuveeDraftAction(
   }
 
   // INSERT initial — toujours en brouillon.
+  const quotaCheck = await checkCuveeQuotaServerSide(supabase, user.id);
+  if (!quotaCheck.ok) return { ok: false, error: quotaCheck.error };
+
   const { data, error } = await supabase
     .from("cuvees")
     .insert({
@@ -162,6 +208,9 @@ export async function submitCuveeAction(
     if (error) return { ok: false, error: error.message };
     cuveeId = opts.existingId;
   } else {
+    const quotaCheck = await checkCuveeQuotaServerSide(supabase, user.id);
+    if (!quotaCheck.ok) return { ok: false, error: quotaCheck.error };
+
     const { data, error } = await supabase
       .from("cuvees")
       .insert({
@@ -283,6 +332,9 @@ export async function duplicateCuveeAction(
     elabel_url: null,
     deleted_at: null,
   };
+
+  const quotaCheck = await checkCuveeQuotaServerSide(supabase, user.id);
+  if (!quotaCheck.ok) return { ok: false, error: quotaCheck.error };
 
   const { data: inserted, error: insertError } = await supabase
     .from("cuvees")

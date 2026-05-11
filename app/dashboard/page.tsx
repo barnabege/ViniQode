@@ -1,20 +1,20 @@
 // app/dashboard/page.tsx
 import Link from "next/link";
-import { ArrowRight, Plus } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { redirect } from "next/navigation";
-import { Button } from "@/components/ui/Button";
 import { CuveeListContainer } from "@/components/dashboard/CuveeListContainer";
 import { ConformiteCard } from "@/components/dashboard/ConformiteCard";
 import { ListeProblemes } from "@/components/dashboard/ListeProblemes";
+import { NewCuveeButton } from "@/components/dashboard/NewCuveeButton";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { getActiveCuveesForUser } from "@/lib/cuvees";
 import { analyserConformiteGlobale } from "@/lib/conformite";
-import { formatDateFR } from "@/lib/utils";
+import { getCuveeQuota, getUserPlanFromProfile } from "@/lib/plans";
+import { cn, formatDateFR } from "@/lib/utils";
 import type { Profile } from "@/lib/database.types";
 
 export const metadata = { title: "Tableau de bord" };
 
-const FREE_LIMIT = 3;
 const DASHBOARD_PREVIEW_LIMIT = 5;
 
 export default async function DashboardPage() {
@@ -35,7 +35,6 @@ export default async function DashboardPage() {
   // updated_at desc. On récupère tout pour les KPIs, puis on tronque pour
   // l'aperçu.
   const cuvees = await getActiveCuveesForUser(user.id);
-  const cuveesActives = cuvees.filter((c) => c.statut === "actif");
   const qrGeneres = cuvees.filter((c) => c.qr_code_url).length;
   const today = formatDateFR(new Date());
 
@@ -43,8 +42,8 @@ export default async function DashboardPage() {
     email_confirmed_at: user.email_confirmed_at ?? null,
   });
 
-  const isStarterAtLimit =
-    (profile?.plan ?? "starter") === "starter" && cuvees.length >= FREE_LIMIT;
+  const plan = getUserPlanFromProfile(profile);
+  const quota = getCuveeQuota(plan, cuvees.length);
 
   const recentCuvees = cuvees.slice(0, DASHBOARD_PREVIEW_LIMIT);
   const hasMore = cuvees.length > DASHBOARD_PREVIEW_LIMIT;
@@ -59,18 +58,22 @@ export default async function DashboardPage() {
             </h1>
             <p className="mt-2 text-sm text-muted">{today}</p>
           </div>
-          <Button asChild>
-            <Link href="/dashboard/cuvees/new">
-              <Plus className="h-4 w-4" />
-              Nouvelle cuvée
-            </Link>
-          </Button>
+          <NewCuveeButton
+            used={quota.used}
+            limit={quota.limit}
+            planLabel={quota.planLabel}
+          />
         </div>
       </header>
 
       <div className="px-6 py-8 sm:px-10 sm:py-12">
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Kpi label="Cuvées actives" value={String(cuveesActives.length)} />
+          <KpiQuota
+            label="Cuvées"
+            used={quota.used}
+            limit={quota.limit}
+            isUnlimited={quota.isUnlimited}
+          />
           <Kpi label="QR codes générés" value={String(qrGeneres)} />
           <Kpi
             label="Scans ce mois"
@@ -79,20 +82,6 @@ export default async function DashboardPage() {
           />
           <ConformiteCard resultat={resultatGlobal} />
         </section>
-
-        {isStarterAtLimit && (
-          <section className="mt-8 flex flex-col gap-4 rounded-md border border-accent/30 bg-accent/5 p-5 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-foreground">
-              Vous avez atteint la limite de 3 cuvées gratuites. Passez à
-              l'offre Essentielle pour des QR codes illimités.
-            </p>
-            <Button asChild size="sm">
-              <Link href="/dashboard/parametres/abonnement">
-                Passer à Essentiel — 99 €/an
-              </Link>
-            </Button>
-          </section>
-        )}
 
         <CuveeListContainer
           cuvees={recentCuvees}
@@ -140,6 +129,47 @@ function Kpi({ label, value, success, muted }: KpiProps) {
       >
         {value}
       </p>
+    </div>
+  );
+}
+
+interface KpiQuotaProps {
+  label: string;
+  used: number;
+  limit: number;
+  isUnlimited: boolean;
+}
+
+function KpiQuota({ label, used, limit, isUnlimited }: KpiQuotaProps) {
+  const ratio = isUnlimited ? 0 : Math.min(used / Math.max(limit, 1), 1);
+  const barClass =
+    ratio >= 1
+      ? "bg-error"
+      : ratio >= 0.66
+      ? "bg-amber-500"
+      : "bg-wine";
+  return (
+    <div className="rounded-md border border-border bg-background p-5">
+      <p className="text-xs uppercase tracking-widest text-muted">{label}</p>
+      <p className="mt-2 font-serif text-2xl text-foreground">
+        {used}
+        {!isUnlimited && <span className="text-muted"> / {limit}</span>}
+      </p>
+      {!isUnlimited && (
+        <div
+          className="mt-3 h-1 overflow-hidden rounded-full bg-surface"
+          role="progressbar"
+          aria-valuenow={used}
+          aria-valuemin={0}
+          aria-valuemax={limit}
+          aria-label={`${used} sur ${limit} cuvées créées`}
+        >
+          <div
+            className={cn("h-full transition-all", barClass)}
+            style={{ width: `${ratio * 100}%` }}
+          />
+        </div>
+      )}
     </div>
   );
 }

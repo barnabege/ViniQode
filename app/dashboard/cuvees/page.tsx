@@ -1,11 +1,11 @@
 // app/dashboard/cuvees/page.tsx
 import { redirect } from "next/navigation";
-import Link from "next/link";
-import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
+import { NewCuveeButton } from "@/components/dashboard/NewCuveeButton";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { getActiveCuveesForUser } from "@/lib/cuvees";
+import { getCuveeQuota, getUserPlanFromProfile } from "@/lib/plans";
+import type { Plan } from "@/lib/database.types";
 import { CuveesPageClient } from "./_components/CuveesPageClient";
 
 export const metadata = { title: "Mes cuvées" };
@@ -17,7 +17,17 @@ export default async function CuveesPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/connexion");
 
-  const cuvees = await getActiveCuveesForUser(user.id);
+  const [cuvees, profileRes] = await Promise.all([
+    getActiveCuveesForUser(user.id),
+    supabase
+      .from("profiles")
+      .select("plan")
+      .eq("id", user.id)
+      .single<{ plan: Plan | null }>(),
+  ]);
+
+  const plan = getUserPlanFromProfile(profileRes.data);
+  const quota = getCuveeQuota(plan, cuvees.length);
 
   return (
     <main className="flex-1">
@@ -30,15 +40,19 @@ export default async function CuveesPage() {
             {cuvees.length > 0 && (
               <Badge variant="neutral">
                 {cuvees.length} cuvée{cuvees.length > 1 ? "s" : ""}
+                {!quota.isUnlimited && (
+                  <span className="ml-1 opacity-70">
+                    · {quota.used}/{quota.limit} {quota.planLabel}
+                  </span>
+                )}
               </Badge>
             )}
           </div>
-          <Button asChild>
-            <Link href="/dashboard/cuvees/new">
-              <Plus className="h-4 w-4" />
-              Nouvelle cuvée
-            </Link>
-          </Button>
+          <NewCuveeButton
+            used={quota.used}
+            limit={quota.limit}
+            planLabel={quota.planLabel}
+          />
         </div>
       </header>
 

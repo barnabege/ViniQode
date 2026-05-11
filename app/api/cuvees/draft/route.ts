@@ -7,6 +7,12 @@
 
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
+import {
+  canCreateCuvee,
+  getCuveeQuota,
+  getUserPlanFromProfile,
+} from "@/lib/plans";
+import type { Plan } from "@/lib/database.types";
 
 const ALLOWED_FIELDS = new Set([
   "nom",
@@ -77,6 +83,35 @@ export async function POST(request: Request) {
 
   if (typeof fields.nom !== "string" || !fields.nom.trim()) {
     return NextResponse.json({ error: "nom required" }, { status: 400 });
+  }
+
+  // Garde-fou quota — défense en profondeur (même check que les Server Actions).
+  const [profileRes, countRes] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("plan")
+      .eq("id", user.id)
+      .single<{ plan: Plan | null }>(),
+    supabase
+      .from("cuvees")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .is("deleted_at", null),
+  ]);
+  const plan = getUserPlanFromProfile(profileRes.data);
+  const used = countRes.count ?? 0;
+  if (!canCreateCuvee(plan, used)) {
+    const q = getCuveeQuota(plan, used);
+    return NextResponse.json(
+      {
+        error: "QUOTA_EXCEEDED",
+        message: `Limite de ${q.limit} cuvée(s) atteinte pour le plan ${q.planLabel}.`,
+        plan,
+        limit: q.limit,
+        current: used,
+      },
+      { status: 403 },
+    );
   }
 
   const insertRow = { ...fields, user_id: user.id, statut: "brouillon" };
