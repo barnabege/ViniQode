@@ -6,8 +6,10 @@
 // sans publicité, lisible mobile en < 1 s.
 
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { logScan } from "./_actions";
 import {
   libelleAllergenesLocalized,
   listeIngredientsLibelleLocalized,
@@ -71,6 +73,23 @@ export default async function ELabelPage({ params }: PageProps) {
     .single<Cuvee>();
 
   if (!data) notFound();
+
+  // Logging fire-and-forget des scans. Ne JAMAIS await : le rendu de la page
+  // doit rester sous la barre des 50 ms d'overhead. Toute erreur est avalée
+  // par logScan lui-même (cf. _actions.ts) ; le .catch est une ceinture +
+  // bretelles au cas où la promesse échouerait avant d'atteindre son try.
+  // On logge aussi les cuvées en statut != 'actif' (utile pour comprendre si
+  // des QR codes obsolètes circulent encore).
+  const h = headers();
+  void logScan({
+    cuveeId: data.id,
+    userId: data.user_id,
+    lang,
+    country: h.get("x-vercel-ip-country"),
+    region: h.get("x-vercel-ip-country-region"),
+    city: h.get("x-vercel-ip-city"),
+    userAgent: h.get("user-agent"),
+  }).catch((err) => console.error("Scan log failed", err));
 
   if (data.statut !== "actif") {
     return <ELabelUnavailable title={t.unavailable.title} message={t.unavailable.message} />;
