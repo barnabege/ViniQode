@@ -20,11 +20,22 @@ const nextConfig = {
   },
   async headers() {
     return [
+      // Pages e-label canoniques /elabel/[lang]/[id] : caching long, noindex.
       {
-        source: "/elabel/:path*",
+        source: "/elabel/:lang/:id",
         headers: [
           { key: "X-Robots-Tag", value: "noindex, nofollow" },
           { key: "Cache-Control", value: "public, max-age=300, s-maxage=600" },
+        ],
+      },
+      // Forme legacy /elabel/[id] (QR codes existants) : redirigée par
+      // middleware vers la forme canonique. Cette redirection dépend de
+      // l'Accept-Language du consommateur — pas de cache CDN partagé.
+      {
+        source: "/elabel/:id",
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+          { key: "Cache-Control", value: "no-store" },
         ],
       },
     ];
