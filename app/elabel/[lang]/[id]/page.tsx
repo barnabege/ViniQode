@@ -168,11 +168,11 @@ export default async function ELabelPage({ params }: PageProps) {
               <NutriRow label={t.nutrition.saturates} value="0 g" indent />
               <NutriRow
                 label={t.nutrition.carbs}
-                value={`${formatNumberFR(data.glucides ?? 0, 1)} g`}
+                value={`${formatNumberFR(data.glucides_g ?? 0, 1)} g`}
               />
               <NutriRow
                 label={t.nutrition.sugars}
-                value={`${formatNumberFR(data.sucres_nutritionnels ?? 0, 1)} g`}
+                value={`${formatNumberFR(data.sucres_g ?? 0, 1)} g`}
                 indent
               />
               <NutriRow label={t.nutrition.protein} value="0 g" />

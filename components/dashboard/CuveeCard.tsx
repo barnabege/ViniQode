@@ -18,7 +18,7 @@ export interface CuveeCardProps {
 }
 
 function libelleProblemes(resultat: ResultatCuvee): string {
-  return resultat.problemes.map((p) => p.message).join(" • ");
+  return resultat.problemes.map((p) => p.message).join(" · ");
 }
 
 export function CuveeCard({
@@ -46,10 +46,7 @@ export function CuveeCard({
     );
   } else {
     badge = (
-      <span
-        title={libelleProblemes(resultat)}
-        className="inline-flex items-center rounded-sm bg-orange-50 px-2 py-0.5 text-xs font-medium text-orange-600"
-      >
+      <span className="inline-flex items-center rounded-sm bg-orange-50 px-2 py-0.5 text-xs font-medium text-orange-600">
         À compléter
       </span>
     );
@@ -78,7 +75,14 @@ export function CuveeCard({
           </p>
           <p className="text-sm text-foreground">{cuvee.millesime ?? "—"}</p>
         </div>
-        <div className="col-span-6 sm:col-span-2">{badge}</div>
+        <div className="col-span-6 sm:col-span-2">
+          {badge}
+          {resultat.etat === "a_completer" && resultat.problemes.length > 0 && (
+            <p className="mt-1 text-xs leading-snug text-orange-700">
+              {libelleProblemes(resultat)}
+            </p>
+          )}
+        </div>
         <div className="col-span-12 flex flex-wrap items-center justify-end gap-2 sm:col-span-4">
           {!selectionMode && (
             <>
@@ -104,7 +108,7 @@ export function CuveeCard({
                 </a>
               )}
               <Link
-                href={`/dashboard/cuvees/new?id=${cuvee.id}`}
+                href={`/dashboard/cuvees/${cuvee.id}/modifier`}
                 className="inline-flex items-center gap-1.5 rounded-sm border border-border px-2.5 py-1.5 text-xs text-foreground transition-colors hover:bg-surface"
               >
                 <Pencil className="h-3.5 w-3.5" />

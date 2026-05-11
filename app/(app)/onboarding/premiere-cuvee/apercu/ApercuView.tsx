@@ -115,8 +115,8 @@ export function ApercuView() {
             allergenesText={allergenesText}
             energieKj={cuvee.valeur_energetique_kj ?? 0}
             energieKcal={cuvee.valeur_energetique_kcal ?? 0}
-            glucides={cuvee.glucides ?? 0}
-            sucres={cuvee.sucres_nutritionnels ?? 0}
+            glucides={cuvee.glucides_g ?? 0}
+            sucres={cuvee.sucres_g ?? 0}
           />
         </PhoneMockup>
       </div>

@@ -1,16 +1,24 @@
-// app/dashboard/cuvees/new/page.tsx
-import { redirect } from "next/navigation";
+// app/dashboard/cuvees/[id]/modifier/page.tsx
+import { notFound, redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
-import { CuveeWizard } from "./CuveeWizard";
+import { getActiveCuveeById } from "@/lib/cuvees";
+import { CuveeWizard } from "../../new/CuveeWizard";
 
-export const metadata = { title: "Nouvelle cuvée" };
+export const metadata = { title: "Modifier la cuvée" };
 
-export default async function NewCuveePage() {
+interface PageProps {
+  params: { id: string };
+}
+
+export default async function EditCuveePage({ params }: PageProps) {
   const supabase = createSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/connexion");
+
+  const existing = await getActiveCuveeById(user.id, params.id);
+  if (!existing) notFound();
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -24,16 +32,16 @@ export default async function NewCuveePage() {
       <div className="mx-auto max-w-4xl">
         <header className="mb-8">
           <h1 className="font-serif text-2xl text-foreground sm:text-3xl">
-            Nouvelle cuvée
+            Modifier la cuvée {existing.nom}
           </h1>
           <p className="mt-1 text-sm text-muted">
-            Renseignez votre cuvée en 4 étapes pour générer son e-label
-            conforme.
+            Vos modifications peuvent être sauvegardées à tout moment. Le QR
+            code reste valide.
           </p>
         </header>
         <CuveeWizard
           domaine={profile?.nom_domaine ?? "Votre domaine"}
-          existingCuvee={null}
+          existingCuvee={existing}
         />
       </div>
     </main>

@@ -42,7 +42,7 @@ export function ListeProblemes({ resultat }: ListeProblemesProps) {
 
               <div className="flex shrink-0 items-center sm:pt-1">
                 <Link
-                  href={`/dashboard/cuvees/new?id=${c.id}`}
+                  href={`/dashboard/cuvees/${c.id}/modifier`}
                   className="inline-flex items-center gap-1 rounded-sm border border-green-700 px-3 py-1.5 text-sm font-medium text-green-700 transition-colors hover:bg-green-50"
                 >
                   Compléter

@@ -49,8 +49,8 @@ function nutritionManquante(cuvee: Cuvee): boolean {
   return (
     cuvee.valeur_energetique_kj === null ||
     cuvee.valeur_energetique_kcal === null ||
-    cuvee.glucides === null ||
-    cuvee.sucres_nutritionnels === null
+    cuvee.glucides_g === null ||
+    cuvee.sucres_g === null
   );
 }
 

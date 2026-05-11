@@ -1,19 +1,21 @@
 // app/dashboard/page.tsx
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { ArrowRight, Plus } from "lucide-react";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { CuveeListContainer } from "@/components/dashboard/CuveeListContainer";
 import { ConformiteCard } from "@/components/dashboard/ConformiteCard";
 import { ListeProblemes } from "@/components/dashboard/ListeProblemes";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { getActiveCuveesForUser } from "@/lib/cuvees";
 import { analyserConformiteGlobale } from "@/lib/conformite";
 import { formatDateFR } from "@/lib/utils";
-import type { Cuvee, Profile } from "@/lib/database.types";
+import type { Profile } from "@/lib/database.types";
 
 export const metadata = { title: "Tableau de bord" };
 
 const FREE_LIMIT = 3;
+const DASHBOARD_PREVIEW_LIMIT = 5;
 
 export default async function DashboardPage() {
   const supabase = createSupabaseServerClient();
@@ -29,13 +31,10 @@ export default async function DashboardPage() {
     .is("deleted_at", null)
     .single<Profile>();
 
-  const { data: cuveesData } = await supabase
-    .from("cuvees")
-    .select("*")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
-
-  const cuvees: Cuvee[] = cuveesData ?? [];
+  // Le helper getActiveCuveesForUser filtre deleted_at IS NULL et trie par
+  // updated_at desc. On récupère tout pour les KPIs, puis on tronque pour
+  // l'aperçu.
+  const cuvees = await getActiveCuveesForUser(user.id);
   const cuveesActives = cuvees.filter((c) => c.statut === "actif");
   const qrGeneres = cuvees.filter((c) => c.qr_code_url).length;
   const today = formatDateFR(new Date());
@@ -46,6 +45,9 @@ export default async function DashboardPage() {
 
   const isStarterAtLimit =
     (profile?.plan ?? "starter") === "starter" && cuvees.length >= FREE_LIMIT;
+
+  const recentCuvees = cuvees.slice(0, DASHBOARD_PREVIEW_LIMIT);
+  const hasMore = cuvees.length > DASHBOARD_PREVIEW_LIMIT;
 
   return (
     <main className="flex-1">
@@ -93,8 +95,20 @@ export default async function DashboardPage() {
         )}
 
         <CuveeListContainer
-          cuvees={cuvees}
+          cuvees={recentCuvees}
+          totalCount={cuvees.length}
           emailConfirmedAt={user.email_confirmed_at ?? null}
+          footer={
+            hasMore ? (
+              <Link
+                href="/dashboard/cuvees"
+                className="inline-flex items-center gap-1 text-sm font-medium text-accent hover:underline"
+              >
+                Voir toutes mes cuvées
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            ) : null
+          }
         />
 
         <ListeProblemes resultat={resultatGlobal} />
@@ -129,4 +143,3 @@ function Kpi({ label, value, success, muted }: KpiProps) {
     </div>
   );
 }
-
