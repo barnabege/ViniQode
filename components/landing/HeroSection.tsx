@@ -77,10 +77,12 @@ export function HeroSection() {
               variants={item}
               className="mt-7 max-w-xl text-base leading-relaxed text-muted sm:text-lg"
             >
-              Le règlement européen oblige 47 000 vignerons à afficher
-              un QR code sur chaque bouteille. ViniQode est l&apos;outil
-              de la filière — sans publicité, sans tracking, hébergé
-              dix ans.
+              Depuis le 8 décembre 2023, tout vin commercialisé dans
+              l&apos;UE doit afficher ses ingrédients et valeurs
+              nutritionnelles. En France, 53 000 exploitations sont
+              concernées. ViniQode est la solution la plus simple et
+              la plus rapide pour les vignerons — sans publicité, sans
+              tracking, accessible dix ans.
             </motion.p>
 
             <motion.div

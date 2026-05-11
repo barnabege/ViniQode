@@ -82,9 +82,9 @@ export function StatsSection() {
                 style={{ fontSize: "clamp(4rem, 15vw, 13rem)" }}
               >
                 <CountUp
-                  to={47000}
+                  to={53000}
                   duration={2}
-                  ariaLabel="47 000 vignerons concernés"
+                  ariaLabel="53 000 exploitations viticoles en France"
                 />
               </p>
             </Reveal>
@@ -100,11 +100,12 @@ export function StatsSection() {
 
             <Reveal y={12} delay={0.3}>
               <p className="mt-7 font-sans text-xl font-medium leading-snug text-foreground sm:text-2xl">
-                vignerons concernés en France
+                exploitations viticoles en France
               </p>
               <p className="mt-3 max-w-md text-sm leading-relaxed text-muted">
-                Soit la quasi-totalité de la filière artisanale, des
-                exploitations familiales aux grandes maisons.
+                La totalité de la filière est concernée par le
+                règlement, des exploitations familiales aux grandes
+                maisons.
               </p>
             </Reveal>
           </div>

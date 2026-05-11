@@ -44,14 +44,14 @@ export const metadata: Metadata = {
     siteName: "ViniQode",
     title: "ViniQode — E-label vin UE 2021/2117 | QR code conforme",
     description:
-      "L'outil de la filière viticole pour la conformité e-label. 47 000 vignerons concernés. Sans publicité, sans tracking. Hébergement dix ans.",
+      "L'outil de la filière viticole pour la conformité e-label. 53 000 exploitations viticoles concernées. Sans publicité, sans tracking. Accessible dix ans.",
     // og:image fournie par app/opengraph-image.tsx (généré dynamiquement)
   },
   twitter: {
     card: "summary_large_image",
     title: "ViniQode — E-label vin conforme",
     description:
-      "L'e-label conforme, en dix minutes. Pour les 47 000 vignerons concernés par le règlement (UE) 2021/2117.",
+      "L'e-label conforme, en dix minutes. Pour les 53 000 exploitations viticoles concernées par le règlement (UE) 2021/2117.",
   },
   manifest: "/manifest.json",
   icons: {
