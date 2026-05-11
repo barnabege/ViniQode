@@ -33,6 +33,22 @@ export type RecoveryCode = {
   used_at: string | null;
   created_at: string;
 };
+
+export type DeviceType = "mobile" | "desktop" | "tablet" | "bot";
+
+export type Scan = {
+  id: string;
+  cuvee_id: string;
+  user_id: string;
+  country: string | null;
+  region: string | null;
+  city: string | null;
+  device_type: DeviceType | null;
+  user_agent: string | null;
+  language: string | null;
+  scanned_at: string;
+};
+
 export type StatutCuvee = "brouillon" | "actif" | "archive";
 
 /**
@@ -212,6 +228,16 @@ export type Database = {
           created_at?: string;
         };
         Update: Partial<RecoveryCode>;
+        Relationships: [];
+      };
+      scans: {
+        Row: Scan;
+        // id et scanned_at ont un DEFAULT côté DB → optionnels en INSERT.
+        // Toutes les autres colonnes sauf cuvee_id et user_id sont nullable.
+        Insert: { cuvee_id: string; user_id: string } & Partial<
+          Omit<Scan, "id" | "scanned_at" | "cuvee_id" | "user_id">
+        > & { id?: string; scanned_at?: string };
+        Update: Partial<Scan>;
         Relationships: [];
       };
     };
