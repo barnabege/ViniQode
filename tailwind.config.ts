@@ -18,36 +18,63 @@ const config: Config = {
     },
     extend: {
       colors: {
-        background: "#FFFFFF",
-        surface: "#F8F9FA",
-        foreground: "#111827",
-        muted: "#6B7280",
-        border: "#E5E7EB",
-        accent: {
-          DEFAULT: "#16A34A",
-          hover: "#15803D",
+        // ── Palette resserrée (60-30-10), warm-neutral, identité wine artisanale.
+        background: "#FAFAF7",   // off-white warm — surface dominante (60%)
+        paper: "#F4F2EC",        // surface élevée (cards rares, sections de rupture)
+        surface: "#F4F2EC",      // alias pour compat existant
+        cream: {                 // alias pour compat existant
+          DEFAULT: "#F4F2EC",
+          deep: "#ECE8DD",
         },
-        success: "#16A34A",
-        error: "#DC2626",
-        ink: "#111827",
+        foreground: "#0F0F0E",   // near-black warm (30%)
+        muted: "#5C5B57",        // mid-gray warm pour body secondaire
+        subtle: "#A3A29C",       // mid-gray clair (placeholder, hint)
+        border: "#E5E3DD",       // hairline warm
+        // accent = identité de marque (wine). Toute classe accent-* cascade
+        // automatiquement vers la teinte wine signature. Pour le vert
+        // SÉMANTIQUE (succès, conformité, validation), utiliser `success`
+        // ou les classes Tailwind directes (text-green-600, etc.).
+        accent: {
+          DEFAULT: "#5C1A2B",
+          hover: "#4A1422",
+        },
+        wine: {                  // signature de marque — CTA pleins + accents
+          DEFAULT: "#5C1A2B",
+          deep: "#4A1422",       // état hover/pressed des CTAs wine pleins
+          soft: "#5C1A2B",       // alias compat
+        },
+        success: "#16A34A",      // alias pour compat
+        error: "#9F2230",        // wine-shifted, pas un rouge SaaS
+        ink: "#0F0F0E",          // alias pour compat
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
-        serif: ["Georgia", "serif"],
+        sans: ["var(--font-inter)", "Inter", "system-ui", "sans-serif"],
+        serif: [
+          "var(--font-fraunces)",
+          "Fraunces",
+          "Cormorant Garamond",
+          "Georgia",
+          "serif",
+        ],
       },
       letterSpacing: {
         tightest: "-0.02em",
+        display: "-0.04em",
+        wider: "0.05em",
         widest: "0.2em",
+        cap: "0.25em",
       },
       borderRadius: {
-        DEFAULT: "8px",
-        sm: "6px",
-        md: "8px",
-        lg: "12px",
+        DEFAULT: "6px",
+        sm: "4px",
+        md: "6px",
+        lg: "8px",
       },
       boxShadow: {
-        subtle: "0 1px 2px 0 rgba(17, 24, 39, 0.04)",
-        card: "0 1px 3px 0 rgba(17, 24, 39, 0.06)",
+        // Quasi pas d'élévation. Hairline > shadow.
+        subtle: "0 1px 2px 0 rgba(15, 15, 14, 0.04)",
+        card: "0 1px 2px 0 rgba(15, 15, 14, 0.04)",
+        // shadow-wine retiré — éliminé avec hover-translate cards
       },
       keyframes: {
         "fade-in": {
@@ -66,15 +93,19 @@ const config: Config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        // float / shine / marquee retirés — incohérents avec direction
       },
       animation: {
-        "fade-in": "fade-in 240ms ease-out both",
-        "slide-up": "slide-up 280ms ease-out both",
-        "accordion-down": "accordion-down 220ms ease-out",
-        "accordion-up": "accordion-up 220ms ease-out",
+        "fade-in": "fade-in 240ms cubic-bezier(0.16, 1, 0.3, 1) both",
+        "slide-up": "slide-up 320ms cubic-bezier(0.16, 1, 0.3, 1) both",
+        "accordion-down": "accordion-down 220ms cubic-bezier(0.16, 1, 0.3, 1)",
+        "accordion-up": "accordion-up 220ms cubic-bezier(0.16, 1, 0.3, 1)",
       },
       maxWidth: {
         prose: "65ch",
+      },
+      transitionTimingFunction: {
+        editorial: "cubic-bezier(0.16, 1, 0.3, 1)",
       },
     },
   },

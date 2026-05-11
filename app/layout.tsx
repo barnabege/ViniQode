@@ -1,6 +1,6 @@
 // app/layout.tsx
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Fraunces, Inter } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
@@ -9,21 +9,32 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-fraunces",
+  style: ["normal", "italic"],
+  axes: ["opsz"],
+});
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "https://viniqode.fr"),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL ?? "https://viniqode.fr",
+  ),
   title: {
     default:
-      "ViniQode — E-label QR code pour vignerons | Conforme (UE) 2021/2117",
+      "ViniQode — E-label vin UE 2021/2117 | QR code conforme en 10 min",
     template: "%s · ViniQode",
   },
   description:
-    "Créez votre e-label QR code conforme en 10 minutes. Solution dédiée aux vignerons artisanaux de moins de 50 ha. Gratuit pour vos 3 premières cuvées.",
+    "E-label vin conforme UE 2021/2117 en dix minutes. QR code obligatoire pour vignerons : 24 langues, hébergement 10 ans, sans tracking. Gratuit jusqu'à 3 cuvées.",
   keywords: [
     "e-label vin",
-    "QR code vin réglementation",
+    "QR code vin obligatoire",
     "étiquetage vin UE 2021/2117",
     "e-label vigneron",
     "QR code étiquette vin conforme",
+    "règlement européen vin",
   ],
   authors: [{ name: "ViniQode" }],
   openGraph: {
@@ -31,22 +42,16 @@ export const metadata: Metadata = {
     locale: "fr_FR",
     url: "/",
     siteName: "ViniQode",
-    title: "ViniQode — E-label QR code conforme pour vignerons",
+    title: "ViniQode — E-label vin UE 2021/2117 | QR code conforme",
     description:
-      "47 000 vignerons doivent afficher un QR code sur leurs bouteilles. ViniQode est la solution la plus simple du marché.",
-    images: [
-      {
-        url: "/og.png",
-        width: 1200,
-        height: 630,
-        alt: "ViniQode — La conformité e-label simplifiée",
-      },
-    ],
+      "L'outil de la filière viticole pour la conformité e-label. 53 000 exploitations viticoles concernées. Sans publicité, sans tracking. Accessible dix ans.",
+    // og:image fournie par app/opengraph-image.tsx (généré dynamiquement)
   },
   twitter: {
     card: "summary_large_image",
-    title: "ViniQode — E-label QR code conforme",
-    description: "Créez votre e-label QR code conforme en 10 minutes.",
+    title: "ViniQode — E-label vin conforme",
+    description:
+      "L'e-label conforme, en dix minutes. Pour les 53 000 exploitations viticoles concernées par le règlement (UE) 2021/2117.",
   },
   manifest: "/manifest.json",
   icons: {
@@ -55,7 +60,8 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#ffffff",
+  themeColor: "#FAFAF7",
+  colorScheme: "light",
   width: "device-width",
   initialScale: 1,
 };
@@ -66,7 +72,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr" className={inter.variable}>
+    <html lang="fr" className={`${inter.variable} ${fraunces.variable}`}>
       <body className="min-h-screen bg-background text-foreground antialiased">
         {children}
       </body>

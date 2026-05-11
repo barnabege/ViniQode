@@ -85,8 +85,8 @@ export function NavigationClient({ user, profile }: Props) {
       className={cn(
         "sticky top-0 z-40 w-full transition-colors duration-200",
         scrolled
-          ? "border-b border-border bg-background/80 backdrop-blur"
-          : "border-b border-transparent bg-transparent",
+          ? "border-b border-wine/15 bg-white/90 backdrop-blur-sm"
+          : "border-b border-wine/10 bg-white",
       )}
     >
       <div className="container-page flex h-16 items-center justify-between lg:h-20">
@@ -139,7 +139,7 @@ export function NavigationClient({ user, profile }: Props) {
                   aria-haspopup="menu"
                   aria-expanded={menuOpen}
                   aria-label="Menu utilisateur"
-                  className="inline-flex items-center gap-2 rounded-full p-1 pr-2 transition-colors hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+                  className="inline-flex items-center gap-2 rounded-full p-1 pr-2 transition-colors hover:bg-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wine/30"
                 >
                   <Avatar logoUrl={profile?.logo_url ?? null} initials={initials} />
                   <span className="hidden max-w-[140px] truncate text-sm font-medium text-foreground lg:inline">
@@ -341,7 +341,7 @@ function Avatar({
   return (
     <span
       aria-hidden="true"
-      className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-accent text-xs font-semibold text-white"
+      className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background"
     >
       {initials}
     </span>

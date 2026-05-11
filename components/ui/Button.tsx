@@ -5,19 +5,21 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wine focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
+        // Primary = signature CTA, teinte wine, texte off-white warm.
         primary:
-          "bg-accent text-white hover:bg-accent-hover",
+          "bg-wine text-background hover:bg-wine-deep",
         secondary:
           "border border-border bg-background text-foreground hover:bg-surface",
         ghost: "text-foreground hover:bg-surface",
+        // Outline = même teinte wine en bordure + texte, fond clair, se remplit au hover.
         outline:
-          "border border-accent bg-background text-accent hover:bg-accent hover:text-white",
-        danger: "bg-error text-white hover:opacity-90",
-        link: "text-accent underline-offset-4 hover:underline",
+          "border border-wine bg-background text-wine hover:bg-wine hover:text-background",
+        danger: "bg-error text-background hover:opacity-90",
+        link: "text-wine underline-offset-4 hover:underline",
       },
       size: {
         sm: "h-9 px-3 text-sm",

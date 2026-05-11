@@ -227,7 +227,7 @@ export function SectionAuditLog({ initialLogs, initialHasMore }: Props) {
           >
             <div className="flex items-start gap-3 min-w-0">
               {log.success ? (
-                <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-accent" />
+                <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-success" />
               ) : (
                 <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-error" />
               )}

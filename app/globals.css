@@ -5,44 +5,50 @@
 
 @layer base {
   :root {
-    --background: #ffffff;
-    --foreground: #111827;
+    --background: #FAFAF7;
+    --foreground: #0F0F0E;
   }
 
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
   }
 
   body {
     background-color: var(--background);
     color: var(--foreground);
-    font-family: "Inter", system-ui, sans-serif;
+    font-family: var(--font-inter), "Inter", system-ui, sans-serif;
     font-size: 16px;
-    line-height: 1.6;
+    line-height: 1.55;
+    font-feature-settings: "ss01", "cv11"; /* Inter humanist alts pour un peu de personnalité */
   }
 
-  h1,
-  h2,
-  h3,
-  h4 {
-    font-family: "Georgia", serif;
+  /* Hiérarchie : sans-serif par défaut. Le serif (Fraunces) s'invoque
+   * explicitement avec font-serif sur les ruptures (h1 hero, pull-quote,
+   * grand numéral Stats). Pas de basculement automatique pour h1-h4. */
+  h1, h2, h3, h4 {
+    color: var(--foreground);
     letter-spacing: -0.02em;
-    line-height: 1.15;
-    color: #111827;
+    line-height: 1.1;
+    font-weight: 600;
   }
 
   ::selection {
-    background-color: #16a34a;
-    color: #ffffff;
+    background-color: #5C1A2B;
+    color: #FAFAF7;
   }
 
-  input,
-  textarea,
-  select,
-  button {
+  input, textarea, select, button {
     font-family: inherit;
+  }
+
+  /* Focus rings cohérents — wine au lieu de ring SaaS bleu/violet. */
+  :focus-visible {
+    outline: 2px solid #5C1A2B;
+    outline-offset: 2px;
+    border-radius: 2px;
   }
 }
 
@@ -55,12 +61,21 @@
     @apply mx-auto w-full max-w-6xl px-6;
   }
 
+  /* Eyebrow technique — small caps, tracking large, tertiaire en hiérarchie. */
   .label-eyebrow {
-    @apply text-xs font-medium uppercase tracking-widest text-muted;
+    @apply text-[11px] font-medium uppercase tracking-[0.25em] text-muted;
   }
 
-  .surface-card {
-    @apply rounded-md border border-border bg-background p-6;
+  /* Folio : marqueur typo "Nº 01" — Fraunces italique pour l'identité,
+   * utilisé dans les en-têtes de section éditoriales. */
+  .folio {
+    @apply font-serif text-sm italic text-wine;
+  }
+
+  /* Hairline rule horizontale, 1px, border color. Utilisée comme séparateur
+   * léger entre blocs ou comme rature courte sous un grand chiffre. */
+  .rule-hairline {
+    @apply h-px w-full bg-border;
   }
 }
 
@@ -73,24 +88,36 @@
     scrollbar-width: none;
   }
 
-  .animate-hero-in {
-    animation: hero-in 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  /* Lien éditorial : soulignement qui se dessine au hover, pas opacity-80. */
+  .link-editorial {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    background-size: 0 1px;
+    transition: background-size 320ms cubic-bezier(0.16, 1, 0.3, 1);
+    padding-bottom: 0.06em;
   }
-}
+  .link-editorial:hover,
+  .link-editorial:focus-visible {
+    background-size: 100% 1px;
+  }
 
-@keyframes hero-in {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  /* Chiffres tabulaires pour grilles statistiques — Inter/Fraunces les supportent. */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-hero-in {
-    animation: none;
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

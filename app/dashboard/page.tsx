@@ -118,7 +118,7 @@ function Kpi({ label, value, success, muted }: KpiProps) {
         className={
           "mt-2 font-serif text-2xl " +
           (success
-            ? "text-accent"
+            ? "text-success"
             : muted
             ? "text-muted"
             : "text-foreground")

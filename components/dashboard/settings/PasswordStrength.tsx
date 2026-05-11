@@ -19,18 +19,21 @@ export function passwordStrengthScore(value: string): number {
 }
 
 const LABELS = ["Trop faible", "Faible", "Moyen", "Bon", "Excellent"];
-const COLORS = [
-  "bg-border",
-  "bg-red-400",
-  "bg-orange-400",
-  "bg-yellow-400",
-  "bg-accent",
-];
+
+// Gradation 4 niveaux de saturation wine : du plus clair au plus soutenu.
+// Chaque segment a sa couleur fixe ; ils s'allument l'un après l'autre,
+// produisant un dégradé visuel naturel à mesure que le mot de passe se
+// renforce.
+const SEGMENT_COLORS = [
+  "bg-wine/30",
+  "bg-wine/50",
+  "bg-wine/75",
+  "bg-wine",
+] as const;
 
 export function PasswordStrength({ value, className }: Props) {
   const score = passwordStrengthScore(value);
   const label = LABELS[score] ?? LABELS[0];
-  const color = COLORS[score] ?? COLORS[0];
 
   return (
     <div className={cn("space-y-1.5", className)} aria-live="polite">
@@ -40,14 +43,21 @@ export function PasswordStrength({ value, className }: Props) {
             key={i}
             className={cn(
               "h-1 flex-1 rounded-full transition-colors",
-              i < score ? color : "bg-border",
+              i < score ? SEGMENT_COLORS[i] : "bg-border",
             )}
           />
         ))}
       </div>
       <p className="text-xs text-muted">
         Force du mot de passe :{" "}
-        <span className="font-medium text-foreground">{label}</span>
+        <span
+          className={cn(
+            "font-medium",
+            score >= 3 ? "text-wine" : "text-foreground",
+          )}
+        >
+          {label}
+        </span>
       </p>
       {!value && (
         <p className="text-xs text-muted">
